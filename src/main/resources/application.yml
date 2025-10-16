@@ -1,20 +1,12 @@
 spring:
+  profiles:
+    active: local
   config:
-    import: "optional:env[.properties]"
-  server:
-    port: 8080
-  datasource:
-    url: jdbc:mysql://${DEFAULT_URL}:3306/${DEFAULT_SCHEMA}?serverTimezone=Asia/Seoul
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      connection-timeout: 10000   # 10?
-      validation-timeout: 3000
-      maximum-pool-size: 10
-  main:
-    lazy-initialization: true
-  jpa:
+    import:
+      - "optional:file:.env[.properties]"
+      - "optional:file:.env.${spring.profiles.active}[.properties]"
+
+    jpa:
     hibernate:
       ddl-auto: update
     properties:

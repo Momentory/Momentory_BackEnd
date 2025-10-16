@@ -1,0 +1,125 @@
+package com.example.momentory.global.code.status;
+
+import com.example.momentory.global.code.BaseErrorCode;
+import com.example.momentory.global.code.ErrorReasonDTO;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.springframework.http.HttpStatus;
+
+@Getter
+@AllArgsConstructor
+public enum ErrorStatus implements BaseErrorCode {
+
+    _INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON500", "서버 에러, 관리자에게 문의 바랍니다."),
+    _BAD_REQUEST(HttpStatus.BAD_REQUEST,"COMMON400","잘못된 요청입니다."),
+    _UNAUTHORIZED(HttpStatus.UNAUTHORIZED,"COMMON401","인증이 필요합니다."),
+    _FORBIDDEN(HttpStatus.FORBIDDEN, "COMMON403", "금지된 요청입니다."),
+    DATABASE_ERROR(HttpStatus.BAD_REQUEST, "COMMON404", "데이터베이스 에러가 발생하였습니다. 다시 시도해주십시오. "),
+    REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND,"COMMON405", "해당 Refresh Token을 찾을 수 없습니다."),
+    INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST,"COMMON406", "유효하지 않은 Refresh Token입니다."),
+
+
+    MEMBER_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4001", "사용자가 없습니다."),
+    EMAIL_NOT_FOUND(HttpStatus.BAD_REQUEST, "MEMBER4003", "이메일이 없습니다."),
+    NICKNAME_NOT_EXIST(HttpStatus.BAD_REQUEST, "MEMBER4002", "닉네임은 필수 입니다."),
+    EMAIL_FAILED(HttpStatus.BAD_REQUEST, "MEMBER4004","이메일 전송에 실패하였습니다."),
+    EMAIL_DUPLICATE(HttpStatus.BAD_REQUEST,"MEMBER4005","이메일이 이미 존재합니다."),
+    NICKNAME_DUPLICATE(HttpStatus.BAD_REQUEST,"MEMBER4006","닉네임이 이미 존재합니다."),
+    TYPE_NOT_FOUND(HttpStatus.NOT_FOUND,"MEMBER4007", "해당 유형이 존재하지 않습니다."),
+    PASSWORD_FAILED(HttpStatus.BAD_REQUEST, "MEMBER4008","계정이 존재하지 않거나 비밀번호가 틀렸습니다."),
+
+    PASSWORD_VALIDATION_FAILED(HttpStatus.BAD_REQUEST,"MEMBER4009","비밀번호는 영어 대/소문자, 숫자 중 2종류 이상을 조합해야 하며 8글자에서 12글자 사이의 값이여야 합니다."),
+    EMAIL_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "MEMBER4010","올바르지 않은 이메일 형식입니다."),
+
+    // 사용자 제재 관련 에러
+    USER_SOFT_BLOCKED(HttpStatus.FORBIDDEN, "PENALTY4001", "일시 차단 상태로 모든 활동이 제한됩니다."),
+    USER_WRITING_RESTRICTED(HttpStatus.FORBIDDEN, "PENALTY4002", "글 작성이 제한되었습니다."),
+    USER_PERMANENTLY_BANNED(HttpStatus.FORBIDDEN, "PENALTY4003", "영구 차단된 계정입니다."),
+    USER_TRAVEL_RESTRICTED(HttpStatus.FORBIDDEN, "PENALTY4004", "일시 차단 상태로 동행방 이용이 제한됩니다."),
+    USER_MESSAGE_RESTRICTED(HttpStatus.FORBIDDEN, "PENALTY4005", "일시 차단 상태로 메시지 전송이 제한됩니다."),
+
+    JWT_SIGNATURE_INVALID(HttpStatus.UNAUTHORIZED, "AUTH001", "JWT 서명이 올바르지 않습니다."),
+    JWT_EXPIRED(HttpStatus.UNAUTHORIZED, "AUTH002", "JWT 토큰이 만료되었습니다."),
+    JWT_MALFORMED(HttpStatus.UNAUTHORIZED, "AUTH003", "JWT 토큰이 올바르지 않은 형식입니다."),
+    INACTIVE_USER(HttpStatus.BAD_REQUEST,"AUTH004"," 이미 탈퇴한/비활성화된 유저입니다."),
+
+    TOUR_API_FAIL(HttpStatus.BAD_REQUEST,"TOUR4001","TOUR API 호출에 실패하였습니다."),
+    TOURIST_SPOT_NOT_FOUND(HttpStatus.NOT_FOUND,"TOUR4002","해당 관광지를 찾을 수 없습니다."),
+    SPOT_CART_ALERADY(HttpStatus.BAD_REQUEST, "TOUR4003","관광지 장바구니에 중복된 관광지를 넣을 수 없습니다."),
+
+    // Plan 관련 에러
+    INVALID_PLAN_DATE(HttpStatus.BAD_REQUEST, "PLAN4001", "시작 날짜는 종료 날짜보다 앞서야 합니다."),
+    PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "PLAN4002", "존재하지 않는 계획입니다."),
+
+    // ChatRoom 관련 에러  
+    INVALID_JOIN_DATE(HttpStatus.BAD_REQUEST, "CHAT4001", "만나는 날짜는 현재 시간 이후로 설정해야 합니다."),
+    CHATROOM_COMPLETED(HttpStatus.BAD_REQUEST, "CHAT4002", "완료된 채팅방에는 메시지를 전송할 수 없습니다."),
+    FORBIDDEN_USER(HttpStatus.FORBIDDEN, "PLAN4003", "해당 계획에 대한 권한이 없습니다."),
+
+    // Chat Error
+    CHATROOM_NOT_FOUND(HttpStatus.NOT_FOUND,"CHAT4001","채팅방을 찾을 수 없습니다."),
+    JOINCHAT_ALREADY_EXIST(HttpStatus.BAD_REQUEST,"CHAT4002","이미 채팅방에 추가된 사용자입니다."),
+    JOINCHAT_NOT_FOUND(HttpStatus.NOT_FOUND,"CHAT4003","해당 채팅방의 사용자를 찾을 수 없습니다."),
+    ALREADY_JOINED_CHATROOM(HttpStatus.BAD_REQUEST,"CHAT4004","이미 참가한 채팅방입니다."),
+    CHATROOM_FULL(HttpStatus.BAD_REQUEST,"CHAT4005","채팅방 최대 인원수에 도달했습니다."),
+    USER_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND,"CHAT4006","사용자 프로필을 찾을 수 없습니다."),
+    GENDER_RESTRICTION_VIOLATION(HttpStatus.FORBIDDEN,"CHAT4007","해당 채팅방의 성별 제한에 맞지 않습니다."),
+    INVALID_GENDER_RESTRICTION_FOR_CREATION(HttpStatus.BAD_REQUEST,"CHAT4008","사용자 성별과 다른 성별 제한의 채팅방은 생성할 수 없습니다."),
+    CHATROOM_ALREADY_COMPLETED(HttpStatus.BAD_REQUEST,"CHAT4009","이미 종료된 채팅방입니다."),
+    OWNER_NOT_OUT(HttpStatus.BAD_REQUEST,"CHAT4010", "방장은 채팅방을 나갈 수 없습니다."),
+    OWNER_JOINCHAT(HttpStatus.BAD_REQUEST, "CHAT4011", "방장만 접근 가능한 권한입니다."),
+    CHATROOM_HAS_OTHERS(HttpStatus.BAD_REQUEST,"CHAT4011","방에 다른 사람이 있는 경우 삭제가 불가능합니다."),
+
+
+    PAGE_BOUND_ERROR(HttpStatus.BAD_REQUEST, "PAGE4001", "페이징 번호가 적절하지 않습니다."),
+
+
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "조회할 알림 목록이 없습니다."),
+    NOTIFICATION_ALREADY_READ(HttpStatus.BAD_REQUEST, "NOTIFICATION4002", "이미 읽음처리 된 알람입니다."),
+    RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스입니다."),
+
+
+    IMAGE_FAILED(HttpStatus.BAD_REQUEST,"IMAGE4001","이미지 올리는 것을 실패하였습니다."),
+
+    IMAGE_TEXT_FAILD(HttpStatus.BAD_REQUEST, "IMAGETEXT4001", "이미지 텍스트 추출을 실패하였습니다."),
+
+    // Review 관련 에러
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW4001", "존재하지 않는 리뷰입니다."),
+    REVIEW_ACCESS_DENIED(HttpStatus.FORBIDDEN, "REVIEW4002", "해당 리뷰에 대한 권한이 없습니다."),
+    INVALID_RATING_RANGE(HttpStatus.BAD_REQUEST, "REVIEW4003", "평점은 1~5 사이의 정수만 가능합니다."),
+
+    // Report 관련 에러
+    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT4001", "존재하지 않는 신고입니다."),
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST4001", "존재하지 않는 게시글입니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT4001", "존재하지 않는 댓글입니다."),
+    UNKNOWN_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "CONTENT4001", "알 수 없는 콘텐츠 타입입니다."),
+    ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN4001", "관리자를 찾을 수 없습니다."),
+    ADMIN_PERMISSION_DENIED(HttpStatus.FORBIDDEN, "ADMIN4002", "관리자 권한이 필요합니다.");
+
+
+
+
+    private final HttpStatus httpStatus;
+    private final String code;
+    private final String message;
+
+    @Override
+    public ErrorReasonDTO getReason() {
+        return ErrorReasonDTO.builder()
+                .message(message)
+                .code(code)
+                .isSuccess(false)
+                .build();
+    }
+
+    @Override
+    public ErrorReasonDTO getReasonHttpStatus() {
+        return ErrorReasonDTO.builder()
+                .message(message)
+                .code(code)
+                .isSuccess(false)
+                .httpStatus(httpStatus)
+                .build()
+                ;
+    }
+}

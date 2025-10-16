@@ -1,0 +1,26 @@
+spring:
+  config:
+    import: "optional:env[.properties]"
+  server:
+    port: 8080
+  datasource:
+    url: jdbc:mysql://${DEFAULT_URL}:3306/${DEFAULT_SCHEMA}?serverTimezone=Asia/Seoul
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 10000   # 10?
+      validation-timeout: 3000
+      maximum-pool-size: 10
+  main:
+    lazy-initialization: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+        physical_naming_strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+        implicit_naming_strategy: org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy
+    show_sql: false

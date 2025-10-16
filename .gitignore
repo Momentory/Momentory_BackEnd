@@ -35,3 +35,16 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+### Environment Variables ###
+.env
+.env.local
+.env.production
+.env.staging
+
+app.jar
+
+# JAR files
+*.jar
+/build/libs/*.jar

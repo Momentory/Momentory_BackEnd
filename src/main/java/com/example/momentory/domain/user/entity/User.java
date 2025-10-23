@@ -39,6 +39,10 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String nickname;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean isActive = true;
+
     // 프로필 (1:1 관계)
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserProfile profile;
@@ -66,6 +70,11 @@ public class User extends BaseEntity {
 
     public Long getId() {
         return this.userId;
+    }
+
+    public void deactivateUser() {
+        this.isActive = false;
+        this.nickname = "탈되된 사용자";
     }
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

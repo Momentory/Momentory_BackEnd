@@ -110,15 +110,28 @@ public class UserService {
                 .build();
     }
 
-    // 회원 탈퇴
+    // 회원 탈퇴 (soft delete)
     @Transactional
     public String deleteUser() {
         Long userId = SecurityUtils.getCurrentUserId();
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        // User와 UserProfile은 cascade로 연결되어 있으므로 User만 삭제하면 됨
-        userRepository.delete(user);
-        return "삭제가 완료되었습니다.";
+        // 이미 탈퇴한 사용자인지 확인
+        if (!user.isActive()) {
+            throw new GeneralException(ErrorStatus.INACTIVE_USER);
+        }
+
+        // soft delete: isActive를 false로 설정하고 이름을 변경
+        user.deactivateUser();
+        userRepository.save(user);
+
+        UserProfile userProfile = userProfileRepository.findByUser(user)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.USER_PROFILE_NOT_FOUND));
+
+        userProfile.deactiveUserProfile();
+        userProfileRepository.save(userProfile);
+
+        return "회원 탈퇴가 완료되었습니다.";
     }
 }

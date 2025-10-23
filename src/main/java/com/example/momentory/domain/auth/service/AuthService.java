@@ -1,7 +1,10 @@
 package com.example.momentory.domain.auth.service;
 
 import com.example.momentory.domain.auth.entity.RefreshToken;
+import com.example.momentory.domain.auth.entity.UserTerms;
+import com.example.momentory.domain.auth.entity.TermsType;
 import com.example.momentory.domain.auth.repository.RefreshTokenRepository;
+import com.example.momentory.domain.auth.repository.UserTermsRepository;
 import com.example.momentory.domain.auth.converter.AuthConverter;
 import com.example.momentory.domain.auth.dto.AuthRequestDTO;
 import com.example.momentory.domain.auth.dto.AuthResponseDTO;
@@ -31,12 +34,17 @@ public class AuthService {
     private final UserProfileRepository userProfileRepository;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final UserTermsRepository userTermsRepository;
     private final MailService mailService;
 
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
-    public AuthResponseDTO.SignResponseDTO signUp(AuthConverter.UserRegistrationData data) {
+    public AuthResponseDTO.SignResponseDTO signUp(AuthConverter.UserRegistrationData data, boolean agreeTerms) {
+        if (!agreeTerms) {
+            throw new GeneralException(ErrorStatus.TERMS_NOT_AGREED);
+        }
+        
         validatePassword(data.user().getPassword());
         validateEmail(data.user().getEmail());
 
@@ -48,6 +56,16 @@ public class AuthService {
             UserProfile userProfile = data.userProfile();
             userProfile.setUser(savedUser);
             userProfileRepository.save(userProfile);
+
+            // UserTerms 저장 (모든 약관 타입에 대해 동의 처리)
+            for (TermsType termsType : TermsType.values()) {
+                UserTerms userTerms = UserTerms.builder()
+                        .user(savedUser)
+                        .termsType(termsType)
+                        .agreed(true)
+                        .build();
+                userTermsRepository.save(userTerms);
+            }
 
             return AuthConverter.toSigninResponseDTO(savedUser);
         } catch (DataIntegrityViolationException e) {
@@ -127,6 +145,11 @@ public class AuthService {
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new GeneralException(ErrorStatus.PASSWORD_FAILED);
+        }
+
+        // 탈퇴한 사용자인지 확인
+        if (!user.isActive()) {
+            throw new GeneralException(ErrorStatus.INACTIVE_USER);
         }
 
         String accessToken = tokenProvider.generateAccessToken(user);

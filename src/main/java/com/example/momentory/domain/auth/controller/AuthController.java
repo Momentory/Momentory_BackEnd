@@ -39,7 +39,7 @@ public class AuthController {
     public ApiResponse<AuthResponseDTO.SignResponseDTO> userSignup(@RequestBody AuthRequestDTO.SignRequestDTO signRequestDTO) {
 
         AuthConverter.UserRegistrationData user = AuthConverter.toUser(signRequestDTO);
-        return ApiResponse.onSuccess(authService.signUp(user));
+        return ApiResponse.onSuccess(authService.signUp(user, signRequestDTO.isAgreeTerms()));
     }
 
     @PostMapping("/reissue")

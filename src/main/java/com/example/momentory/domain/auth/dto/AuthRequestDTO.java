@@ -29,6 +29,7 @@ public class AuthRequestDTO {
         private String imageUrl;
         private String bio;
         private String externalLink;
+        private boolean agreeTerms;
 
     }
 

@@ -57,4 +57,11 @@ public class UserProfile extends BaseEntity {
         if (bio != null) this.bio = bio;
     }
 
+    public void deactiveUserProfile(){
+        this.imageName = null;
+        this.imageUrl = null;
+        this.externalLink = null;
+        this.bio = null;
+    }
+
 }

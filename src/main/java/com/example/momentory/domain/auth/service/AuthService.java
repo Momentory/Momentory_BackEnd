@@ -194,7 +194,7 @@ public class AuthService {
 
             if (optionalProfile.isPresent()) {
                 UserProfile profile = optionalProfile.get();
-                profile.updateProfile(dto.getNickName(), dto.getBirthDate(), dto.getGender(), dto.getImageName(), dto.getImageUrl());
+                profile.updateProfile(dto.getNickName(), dto.getBirthDate(), dto.getGender(), dto.getBio(), dto.getImageName(), dto.getImageUrl(), dto.getExternalLink());
             } else {
                 UserProfile userProfile = UserProfile.builder()
                         .user(user)

@@ -28,8 +28,10 @@ public class UserProfile extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    private int point;
-    private int level;
+    @Builder.Default
+    private int point=0;
+    @Builder.Default
+    private int level=1;
     private String imageName;
     private String imageUrl;
 
@@ -41,12 +43,14 @@ public class UserProfile extends BaseEntity {
         this.user = user;
     }
 
-    public void updateProfile(String nickname, LocalDate birth, Gender gender, String imageName, String imageUrl) {
+    public void updateProfile(String nickname, LocalDate birth, Gender gender, String imageName, String imageUrl, String bio, String externalLink) {
         if (nickname != null) this.nickname = nickname;
         if (birth != null) this.birth = birth;
         if (gender != null) this.gender = gender;
         if (imageName != null) this.imageName = imageName;
         if (imageUrl != null) this.imageUrl = imageUrl;
+        if (bio != null) this.bio = bio;
+        if (externalLink != null) this.externalLink = externalLink;
     }
 
     public void updateBio(String bio) {

@@ -30,6 +30,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     PASSWORD_VALIDATION_FAILED(HttpStatus.BAD_REQUEST,"MEMBER4009","비밀번호는 영어 대/소문자, 숫자 중 2종류 이상을 조합해야 하며 8글자에서 12글자 사이의 값이여야 합니다."),
     EMAIL_VALIDATION_FAILED(HttpStatus.BAD_REQUEST, "MEMBER4010","올바르지 않은 이메일 형식입니다."),
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "MEMBER4011","이메일 인증이 완료되지 않았습니다."),
 
     // 사용자 제재 관련 에러
     USER_SOFT_BLOCKED(HttpStatus.FORBIDDEN, "PENALTY4001", "일시 차단 상태로 모든 활동이 제한됩니다."),

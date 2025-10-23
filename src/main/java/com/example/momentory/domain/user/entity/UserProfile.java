@@ -22,6 +22,7 @@ public class UserProfile extends BaseEntity {
     private User user;
 
     private String phone;
+    private String nickname;
     private LocalDate birth;
 
     @Enumerated(EnumType.STRING)
@@ -29,10 +30,27 @@ public class UserProfile extends BaseEntity {
 
     private int point;
     private int level;
-    private String profileImage;
+    private String imageName;
+    private String imageUrl;
+
+    private String bio;
+    private String externalLink;
 
     // === 연관관계 메서드 ===
     public void setUser(User user) {
         this.user = user;
     }
+
+    public void updateProfile(String nickname, LocalDate birth, Gender gender, String imageName, String imageUrl) {
+        if (nickname != null) this.nickname = nickname;
+        if (birth != null) this.birth = birth;
+        if (gender != null) this.gender = gender;
+        if (imageName != null) this.imageName = imageName;
+        if (imageUrl != null) this.imageUrl = imageUrl;
+    }
+
+    public void updateBio(String bio) {
+        if (bio != null) this.bio = bio;
+    }
+
 }

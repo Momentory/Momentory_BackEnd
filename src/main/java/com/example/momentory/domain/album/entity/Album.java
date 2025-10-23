@@ -25,6 +25,7 @@ public class Album extends BaseEntity {
     private String title;
 
     @OneToMany(mappedBy = "album", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<AlbumPage> pages = new ArrayList<>();
 }
 

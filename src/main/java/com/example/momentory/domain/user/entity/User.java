@@ -43,6 +43,9 @@ public class User extends BaseEntity {
     @Builder.Default
     private boolean isActive = true;
 
+    @Column(unique = true)
+    private String kakaoId;
+
     // 프로필 (1:1 관계)
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserProfile profile;

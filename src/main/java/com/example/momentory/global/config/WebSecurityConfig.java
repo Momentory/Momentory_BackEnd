@@ -2,6 +2,8 @@ package com.example.momentory.global.config;
 
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.security.JwtAuthenticationFilter;
+import com.example.momentory.global.security.oauth.OAuth2LoginSuccessHandler;
+import com.example.momentory.global.security.oauth.CustomOAuth2UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.log4j.Log4j2;
@@ -29,6 +31,10 @@ public class WebSecurityConfig {
     private final ObjectMapper objectMapper;
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
+    @Autowired
+    private CustomOAuth2UserService customOAuth2UserService;
+    @Autowired
+    private OAuth2LoginSuccessHandler oAuth2LoginSuccessHandler;
 
 
     @Autowired
@@ -80,7 +86,12 @@ public class WebSecurityConfig {
             });
         });
 
-        // OAuth2 로그인은 나중에 추가 예정
+        // OAuth2 로그인 설정
+        http.oauth2Login(oauth2 -> oauth2
+                .userInfoEndpoint(userInfo -> userInfo
+                        .userService(customOAuth2UserService))
+                .successHandler(oAuth2LoginSuccessHandler)
+        );
 
         return http.build();
     }

@@ -203,6 +203,11 @@ public class AuthService {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
+            // 탈퇴한 사용자인지 확인
+            if (!user.isActive()) {
+                throw new GeneralException(ErrorStatus.INACTIVE_USER);
+            }
+
             user.updateName(dto.getName());
             if (dto.getBio() != null) {
                 user.updateBio(dto.getBio());

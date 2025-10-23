@@ -10,7 +10,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Entity
-@Table(name = "users")
+@Table(
+        name = "users",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
+                @UniqueConstraint(name = "uk_user_nickname", columnNames = "nickname")
+        }
+)
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -33,6 +39,13 @@ public class User extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String nickname;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean isActive = true;
+
+    @Column(unique = true)
+    private String kakaoId;
+
     // 프로필 (1:1 관계)
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     private UserProfile profile;
@@ -42,9 +55,35 @@ public class User extends BaseEntity {
         this.profile = profile;
         profile.setUser(this);
     }
+
+    public void changePassword(String password) {
+        this.password = password;
+    }
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateBio(String bio) {
+        // User 엔티티에 bio 필드가 없으므로 UserProfile을 통해 관리
+        if (this.profile != null) {
+            this.profile.updateBio(bio);
+        }
+    }
+
+    public Long getId() {
+        return this.userId;
+    }
+
+    public void deactivateUser() {
+        this.isActive = false;
+        this.nickname = "탈퇴한 사용자";
+    }
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<Token> tokens = new ArrayList<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<UserTerms> userTerms = new ArrayList<>();
 }

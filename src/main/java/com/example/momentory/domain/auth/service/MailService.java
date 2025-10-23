@@ -5,6 +5,7 @@ import com.example.momentory.domain.auth.repository.EmailVerificationRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
@@ -16,6 +17,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class MailService {
     private final JavaMailSender javaMailSender;
     @Value("${APP_EMAIL}")
@@ -53,7 +55,7 @@ public class MailService {
             message.setText(createEmailBody(verificationLink), "UTF-8", "html");
             javaMailSender.send(message);
         } catch (MessagingException e) {
-            e.printStackTrace();
+            log.error("메일 발송 실패", e);
         }
     }
 

@@ -86,11 +86,6 @@ public class UserService {
                 request.getExternalLink() != null ? request.getExternalLink() : userProfile.getExternalLink()
         );
 
-        // bio 업데이트
-        if (request.getBio() != null) {
-            userProfile.updateBio(request.getBio());
-        }
-
         userProfileRepository.save(userProfile);
 
         return UserResponseDto.MyInfoDto.builder()
@@ -129,7 +124,7 @@ public class UserService {
         UserProfile userProfile = userProfileRepository.findByUser(user)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_PROFILE_NOT_FOUND));
 
-        userProfile.deactiveUserProfile();
+        userProfile.deactivateUserProfile();
         userProfileRepository.save(userProfile);
 
         return "회원 탈퇴가 완료되었습니다.";

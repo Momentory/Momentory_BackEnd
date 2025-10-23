@@ -77,7 +77,7 @@ public class User extends BaseEntity {
 
     public void deactivateUser() {
         this.isActive = false;
-        this.nickname = "탈되된 사용자";
+        this.nickname = "탈퇴한 사용자";
     }
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

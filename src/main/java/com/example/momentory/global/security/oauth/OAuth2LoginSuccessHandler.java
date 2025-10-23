@@ -49,7 +49,14 @@ public class OAuth2LoginSuccessHandler implements AuthenticationSuccessHandler {
         // 카카오 닉네임 추출
         Map<String, Object> attributes = customUser.getAttributes();
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+        if (kakaoAccount == null) {
+            throw new GeneralException(ErrorStatus.MEMBER_NOT_FOUND);
+        }
+
         Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+        if (profile == null) {
+            throw new GeneralException(ErrorStatus.MEMBER_NOT_FOUND);
+        }
         String kakaoNickname = (String) profile.get("nickname");
         String encodedNickname = URLEncoder.encode(kakaoNickname, StandardCharsets.UTF_8);
         String profileImage = (String) profile.get("profile_image_url");

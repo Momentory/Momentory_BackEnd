@@ -81,7 +81,7 @@ public class AuthService {
                 throw new GeneralException(ErrorStatus.DATABASE_ERROR);
             }
         }
-        return null;//도달하지 않는 코드
+        throw new GeneralException(ErrorStatus.DATABASE_ERROR);
     }
 
 
@@ -191,7 +191,6 @@ public class AuthService {
     @Transactional
     public void logout() {
         Long userId = SecurityUtils.getCurrentUserId();
-        System.out.println("UserId  = " + userId);
         refreshTokenRepository.deleteByUserId(userId);
     }
 
@@ -222,7 +221,15 @@ public class AuthService {
 
             if (optionalProfile.isPresent()) {
                 UserProfile profile = optionalProfile.get();
-                profile.updateProfile(dto.getNickName(), dto.getBirthDate(), dto.getGender(), dto.getBio(), dto.getImageName(), dto.getImageUrl(), dto.getExternalLink());
+                profile.updateProfile(
+                        dto.getNickName(),
+                        dto.getBirthDate(),
+                        dto.getGender(),
+                        dto.getImageName(),
+                        dto.getImageUrl(),
+                        dto.getBio(),
+                        dto.getExternalLink()
+                );
             } else {
                 UserProfile userProfile = UserProfile.builder()
                         .user(user)

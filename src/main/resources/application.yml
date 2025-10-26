@@ -65,3 +65,14 @@ springdoc:
 app:
   frontend:
     redirect-url: ${FRONT_URL}
+
+
+cloud:
+  aws:
+    credentials:
+      access-key: ${IAM_ACCESS_KEY}
+      secret-key: ${IAM_SECRET_KEY}
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: ${BUCKET_NAME}

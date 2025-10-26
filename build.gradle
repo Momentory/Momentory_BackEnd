@@ -48,6 +48,9 @@ dependencies {
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+	implementation 'io.awspring.cloud:spring-cloud-aws-starter:3.1.1'
+	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.767'
 }
 
 tasks.named('test') {

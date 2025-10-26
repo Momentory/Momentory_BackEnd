@@ -36,7 +36,7 @@ public class MyPageController {
     }
 
     @DeleteMapping("")
-    @Operation(summary = "회원 탈퇴", description = "회원 탈퇴 API입니다.")
+    @Operation(summary = "회원 탈퇴", description = "회원을 탈퇴하는 API입니다.")
     public ApiResponse<String> deleteProfile() {
         return ApiResponse.onSuccess(userService.deleteUser());
     }

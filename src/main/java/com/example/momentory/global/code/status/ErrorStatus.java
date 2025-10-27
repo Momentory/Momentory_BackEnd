@@ -49,11 +49,7 @@ public enum ErrorStatus implements BaseErrorCode {
     TOURIST_SPOT_NOT_FOUND(HttpStatus.NOT_FOUND,"TOUR4002","해당 관광지를 찾을 수 없습니다."),
     SPOT_CART_ALERADY(HttpStatus.BAD_REQUEST, "TOUR4003","관광지 장바구니에 중복된 관광지를 넣을 수 없습니다."),
 
-    // Plan 관련 에러
-    INVALID_PLAN_DATE(HttpStatus.BAD_REQUEST, "PLAN4001", "시작 날짜는 종료 날짜보다 앞서야 합니다."),
-    PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "PLAN4002", "존재하지 않는 계획입니다."),
-
-    // ChatRoom 관련 에러  
+    // ChatRoom 관련 에러
     INVALID_JOIN_DATE(HttpStatus.BAD_REQUEST, "CHAT4001", "만나는 날짜는 현재 시간 이후로 설정해야 합니다."),
     CHATROOM_COMPLETED(HttpStatus.BAD_REQUEST, "CHAT4002", "완료된 채팅방에는 메시지를 전송할 수 없습니다."),
     FORBIDDEN_USER(HttpStatus.FORBIDDEN, "PLAN4003", "해당 계획에 대한 권한이 없습니다."),
@@ -79,26 +75,15 @@ public enum ErrorStatus implements BaseErrorCode {
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "조회할 알림 목록이 없습니다."),
     NOTIFICATION_ALREADY_READ(HttpStatus.BAD_REQUEST, "NOTIFICATION4002", "이미 읽음처리 된 알람입니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스입니다."),
+    // ====== 기타 리소스 ======
+    DUPLICATE_RESOURCE(HttpStatus.BAD_REQUEST, "RESOURCE4002", "중복된 리소스입니다."),
+    // 입력값 검증 관련 에러
+    INVALID_INPUT(HttpStatus.BAD_REQUEST, "COMMON407", "입력값이 올바르지 않습니다."),
+    MISSING_PARAMETER(HttpStatus.BAD_REQUEST, "COMMON408", "필수 파라미터가 누락되었습니다."),
+    INVALID_TYPE(HttpStatus.BAD_REQUEST, "COMMON409", "입력 타입이 올바르지 않습니다."),
 
-
-    IMAGE_FAILED(HttpStatus.BAD_REQUEST,"IMAGE4001","이미지 올리는 것을 실패하였습니다."),
-
-    IMAGE_TEXT_FAILD(HttpStatus.BAD_REQUEST, "IMAGETEXT4001", "이미지 텍스트 추출을 실패하였습니다."),
-
-    // Review 관련 에러
-    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REVIEW4001", "존재하지 않는 리뷰입니다."),
-    REVIEW_ACCESS_DENIED(HttpStatus.FORBIDDEN, "REVIEW4002", "해당 리뷰에 대한 권한이 없습니다."),
-    INVALID_RATING_RANGE(HttpStatus.BAD_REQUEST, "REVIEW4003", "평점은 1~5 사이의 정수만 가능합니다."),
-
-    // Report 관련 에러
-    REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "REPORT4001", "존재하지 않는 신고입니다."),
-    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST4001", "존재하지 않는 게시글입니다."),
-    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT4001", "존재하지 않는 댓글입니다."),
-    UNKNOWN_CONTENT_TYPE(HttpStatus.BAD_REQUEST, "CONTENT4001", "알 수 없는 콘텐츠 타입입니다."),
-    ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "ADMIN4001", "관리자를 찾을 수 없습니다."),
-    ADMIN_PERMISSION_DENIED(HttpStatus.FORBIDDEN, "ADMIN4002", "관리자 권한이 필요합니다.");
-
-
+    IMAGE_FAILED(HttpStatus.BAD_REQUEST, "IMAGE4001", "이미지 업로드에 실패하였습니다."),
+    IMAGE_TEXT_FAILED(HttpStatus.BAD_REQUEST, "IMAGETEXT4001", "이미지 텍스트 추출에 실패하였습니다.");
 
 
     private final HttpStatus httpStatus;

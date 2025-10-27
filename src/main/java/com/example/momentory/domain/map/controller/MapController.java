@@ -1,0 +1,129 @@
+package com.example.momentory.domain.map.controller;
+
+import com.example.momentory.domain.map.service.MapQueryService;
+import com.example.momentory.domain.photo.dto.PhotoReseponseDto;
+import com.example.momentory.domain.user.entity.User;
+import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.global.security.SecurityUtils;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/map")
+@Tag(name = "지도 API", description = "지도 관련 기능을 제공하는 API")
+public class MapController {
+
+    private final MapQueryService mapQueryService;
+    private final UserRepository userRepository;
+
+    // ========== 전체 지도 API ==========
+    
+    /**
+     * 전체 지도 - 모든 지역의 최신 공개 사진들을 한번에 조회
+     */
+    @GetMapping("/public")
+    @Operation(
+        summary = "전체 지도 - 모든 지역 최신 공개 사진 조회", 
+        description = "모든 지역의 가장 최근에 업로드된 PUBLIC 사진들을 한번에 조회합니다. 클러스터링을 위한 API입니다.",
+        tags = {"지도 API"}
+    )
+    public ResponseEntity<Map<String, PhotoReseponseDto.PhotoResponse>> getAllRegionsLatestPublicPhotos() {
+        Map<String, PhotoReseponseDto.PhotoResponse> photosMap = mapQueryService.getAllRegionsLatestPublicPhotos();
+        return ResponseEntity.ok(photosMap);
+    }
+    
+    /**
+     * 전체 지도 - 특정 지역의 모든 공개 사진 조회 (클릭 시)
+     */
+    @GetMapping("/public/photos")
+    @Operation(
+        summary = "전체 지도 - 지역별 공개 사진 조회", 
+        description = "특정 지역의 PUBLIC 설정된 사진들을 모두 조회합니다. 사용자 상관없이 공개된 사진만 반환됩니다.",
+        tags = {"지도 API"}
+    )
+    public ResponseEntity<List<PhotoReseponseDto.PhotoResponse>> getPublicPhotosByRegion(
+            @Parameter(description = "지역명 (예: 부천시)", required = true)
+            @RequestParam String regionName) {
+        List<PhotoReseponseDto.PhotoResponse> photos = mapQueryService.getPublicPhotosByRegion(regionName);
+        return ResponseEntity.ok(photos);
+    }
+
+    // ========== 나의 지도 API ==========
+    
+    /**
+     * 나의 지도 - 모든 지역 방문 여부 조회
+     */
+    @GetMapping("/my")
+    @Operation(
+        summary = "나의 지도 - 모든 지역 방문 여부 조회", 
+        description = "현재 로그인한 사용자가 모든 지역에 방문했는지 여부를 한번에 조회합니다. 동 단위 클러스터링을 위한 API입니다.",
+        tags = {"지도 API"}
+    )
+    public ResponseEntity<Map<String, Boolean>> getMyMapVisitStatus() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        Map<String, Boolean> visitStatusMap = mapQueryService.getAllRegionVisitStatus(userId);
+        return ResponseEntity.ok(visitStatusMap);
+    }
+    
+    /**
+     * 나의 지도 - 모든 지역의 내 최신 사진들을 한번에 조회
+     */
+    @GetMapping("/my/photos")
+    @Operation(
+        summary = "나의 지도 - 모든 지역 내 최신 사진 조회", 
+        description = "모든 지역의 현재 로그인한 사용자의 가장 최근 사진들을 한번에 조회합니다. 클러스터링을 위한 API입니다.",
+        tags = {"지도 API"}
+    )
+    public ResponseEntity<Map<String, PhotoReseponseDto.PhotoResponse>> getAllRegionsLatestMyPhotos() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        Map<String, PhotoReseponseDto.PhotoResponse> photosMap = mapQueryService.getAllRegionsLatestUserPhotos(user);
+        return ResponseEntity.ok(photosMap);
+    }
+    
+    /**
+     * 나의 지도 - 특정 지역의 내 모든 사진 조회 (확대/클릭 시)
+     */
+    @GetMapping("/my/photos/detail")
+    @Operation(
+        summary = "나의 지도 - 지역별 내 사진 조회", 
+        description = "특정 지역에 있는 현재 로그인한 사용자의 모든 사진을 조회합니다. visibility 설정과 상관없이 모든 사진이 반환됩니다.",
+        tags = {"지도 API"}
+    )
+    public ResponseEntity<List<PhotoReseponseDto.PhotoResponse>> getMyPhotosByRegion(
+            @Parameter(description = "지역명 (예: 부천시)", required = true)
+            @RequestParam String regionName) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        List<PhotoReseponseDto.PhotoResponse> photos = mapQueryService.getUserPhotosByRegion(regionName, user);
+        return ResponseEntity.ok(photos);
+    }
+}

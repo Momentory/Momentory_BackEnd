@@ -22,11 +22,11 @@ public class Stamp extends BaseEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
-    private String region;
+    private String region;    // ex) 부천시
+    private String spotName;  // ex) 부천향교, 부천국제판타스틱영화제
 
     @Enumerated(EnumType.STRING)
     private StampType type;
 
     private LocalDateTime issuedAt;
 }
-

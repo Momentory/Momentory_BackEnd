@@ -76,3 +76,10 @@ cloud:
       static: ap-northeast-2
     s3:
       bucket: ${BUCKET_NAME}
+
+kakao:
+  api:
+    key: ${KAKAO_REST_API_KEY}
+
+tourapi:
+  key: ${TOUR_API_KEY}

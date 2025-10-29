@@ -17,14 +17,12 @@ public class PhotoReseponseDto {
         private Long photoId;
         private String imageName;
         private String imageUrl;
-        private Double latitude;
-        private Double longitude;
+        private Double latitude;   // 위도
+        private Double longitude;   // 경도
         private String address;
         private String memo;
         private Visibility visibility;
-        private LocalDateTime takenAt;
         private LocalDateTime createdAt;
-        private LocalDateTime updatedAt;
     }
 
     @Getter
@@ -54,6 +52,7 @@ public class PhotoReseponseDto {
         private Double latitude;
         private Double longitude;
         private String address;
+        private String regionName;  // 지역명 (예: "부천시")
         private java.util.List<SpotInfo> spots;
     }
 
@@ -68,5 +67,16 @@ public class PhotoReseponseDto {
         private String address;
         private String tel;
         private String imageUrl;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class LocationToAddressResponse{
+        private Double latitude;
+        private Double longitude;
+        private String address;
+        private String cityName; // "부천시" 형태로 추출된 도시명
     }
 }

@@ -13,9 +13,9 @@ public class PhotoConverter {
                 .user(user)
                 .imageName(req.getImageName())
                 .imageUrl(req.getImageUrl())
-                .longitude(req.getLongitude())
                 .latitude(req.getLatitude())
-                .address(req.getAddress())
+                .longitude(req.getLongitude())
+                .address(req.getCityName())
                 .memo(req.getMemo())
                 .visibility(req.getVisibility() != null && req.getVisibility() ? Visibility.PUBLIC : Visibility.PRIVATE)
                 .build();
@@ -31,9 +31,7 @@ public class PhotoConverter {
                 .address(photo.getAddress())
                 .memo(photo.getMemo())
                 .visibility(photo.getVisibility())
-                .takenAt(photo.getTakenAt())
                 .createdAt(photo.getCreatedAt())
-                .updatedAt(photo.getUpdatedAt())
                 .build();
     }
 }

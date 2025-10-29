@@ -2,6 +2,7 @@ package com.example.momentory.domain.photo.service;
 
 import com.example.momentory.domain.map.service.CulturalSpotService;
 import com.example.momentory.domain.map.service.MapMarkerService;
+import com.example.momentory.domain.map.service.KakaoMapService;
 import com.example.momentory.domain.photo.converter.PhotoConverter;
 import com.example.momentory.domain.photo.dto.PhotoRequestDto;
 import com.example.momentory.domain.photo.dto.PhotoReseponseDto;
@@ -31,6 +32,7 @@ public class PhotoService {
     private final UserRepository userRepository;
     private final MapMarkerService mapMarkerService;
     private final CulturalSpotService culturalSpotService;
+    private final KakaoMapService kakaoMapService;
     private final com.example.momentory.domain.photo.repository.StampRepository stampRepository;
 
     // 포토 업로드
@@ -45,11 +47,11 @@ public class PhotoService {
         Photo photo = PhotoConverter.uploadToPhoto(photoRequest, user);
         Photo savedPhoto = photoRepository.save(photo);
 
-        // 지역 스탬프
-        String regionalStampName = mapMarkerService.createMarkerAndStampWithInfo(savedPhoto, user);
+        // 지역 스탬프 (프론트에서 받은 address와 color 사용)
+        String regionalStampName = mapMarkerService.createMarkerAndStampWithInfo(savedPhoto, user, photoRequest.getColor());
         boolean regionalStampGranted = (regionalStampName != null);
 
-// 근처 문화시설 (TourAPI)
+        // 근처 문화시설 검색 (TourAPI)
         boolean hasNearbyCulturalSpots = false;
         String nearbyCulturalSpotName = null;
 
@@ -73,6 +75,8 @@ public class PhotoService {
             } else {
                 log.info("[문화 스탬프 후보] 근처 문화시설 없음");
             }
+        } else {
+            log.info("[문화시설 검색] 위도/경도 정보가 없어 문화시설 검색을 건너뜁니다.");
         }
 
         return PhotoReseponseDto.PhotoUploadResponse.builder()
@@ -110,8 +114,6 @@ public class PhotoService {
         }
 
         photo.updatePhoto(
-                photoRequest.getLatitude(),
-                photoRequest.getLongitude(),
                 photoRequest.getAddress(),
                 photoRequest.getMemo(),
                 visibility
@@ -168,13 +170,13 @@ public class PhotoService {
         }
 
         Visibility visibility = visibilityRequest.getVisibility() ? Visibility.PUBLIC : Visibility.PRIVATE;
-        photo.updatePhoto(null, null, null, null, visibility);
+        photo.updatePhoto(null, null, visibility);
 
         return PhotoConverter.toPhotoResponse(photo);
     }
 
     // 업로드 후 근처 관광지 추천
-    public PhotoReseponseDto.NearbySpotsResponse getNearbySpots(Long photoId, Double latitude, Double longitude) {
+    public PhotoReseponseDto.NearbySpotsResponse getNearbySpots(Long photoId) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (userId == null) {
             throw new GeneralException(ErrorStatus._UNAUTHORIZED);
@@ -183,23 +185,24 @@ public class PhotoService {
         Photo photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
 
-        // 본인의 포토만 조회 가능
-        if (!photo.getUser().getUserId().equals(userId)) {
-            throw new GeneralException(ErrorStatus._FORBIDDEN);
-        }
+//        // 본인의 포토만 조회 가능
+//        if (!photo.getUser().getUserId().equals(userId)) {
+//            throw new GeneralException(ErrorStatus._FORBIDDEN);
+//        }
 
-        // 위경도가 없으면 빈 리스트 반환
+        // 사진에서 위도/경도 추출, 없으면 기본값 사용
+        Double latitude = photo.getLatitude();
+        Double longitude = photo.getLongitude();
+        
         if (latitude == null || longitude == null) {
-            return PhotoReseponseDto.NearbySpotsResponse.builder()
-                    .photoId(photoId)
-                    .latitude(latitude)
-                    .longitude(longitude)
-                    .address(photo.getAddress())
-                    .spots(new java.util.ArrayList<>())
-                    .build();
+            latitude = 37.486066145252344;  // 기본 위도
+            longitude = 126.80233355098368;  // 기본 경도
         }
 
-        // 관광지 추천 조회 (사용자가 제공한 위경도 사용)
+        // 지역명 추출
+        String regionName = extractCityName(photo.getAddress());
+
+        // 관광지 추천 조회
         List<Map<String, String>> recommendedSpots = culturalSpotService.getRecommendedSpots(latitude, longitude);
 
         // SpotInfo 리스트로 변환
@@ -219,7 +222,54 @@ public class PhotoService {
                 .latitude(latitude)
                 .longitude(longitude)
                 .address(photo.getAddress())
+                .regionName(regionName)
                 .spots(spots)
                 .build();
+    }
+
+    // 위도/경도로 주소 변환
+    public PhotoReseponseDto.LocationToAddressResponse convertLocationToAddress(PhotoRequestDto.LocationToAddressRequest request) {
+        try {
+            // 카카오맵 API로 주소 조회
+            String regionFullName = kakaoMapService.getRegionName(request.getLatitude(), request.getLongitude());
+            String cityName = extractCityName(regionFullName);
+            
+            return PhotoReseponseDto.LocationToAddressResponse.builder()
+                    .latitude(request.getLatitude())
+                    .longitude(request.getLongitude())
+                    .address(regionFullName)
+                    .cityName(cityName)
+                    .build();
+        } catch (Exception e) {
+            log.error("위치 정보 변환 실패: {}", e.getMessage());
+            throw new GeneralException(ErrorStatus._INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private String extractCityName(String fullName) {
+        if (fullName == null || fullName.isEmpty()) {
+            return null;
+        }
+        
+        // 예: "경기도 부천시" -> "부천시"
+        // 예: "부천시 원미구" -> "부천시"
+        // 예: "서울특별시 중구" -> "서울특별시"
+        
+        String[] parts = fullName.split(" ");
+        
+        // "시" 또는 "군" 또는 "구"로 끝나는 부분을 찾기
+        for (String part : parts) {
+            if (part.endsWith("시") || part.endsWith("군") || part.endsWith("구")) {
+                return part;
+            }
+        }
+        
+        // 특별시/광역시 처리
+        if (fullName.contains("특별시") || fullName.contains("광역시")) {
+            return fullName.split(" ")[0];
+        }
+        
+        // 기본적으로 첫 번째 부분 반환
+        return parts[0];
     }
 }

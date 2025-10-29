@@ -24,8 +24,8 @@ public class Photo extends BaseEntity {
 
     private String imageName;
     private String imageUrl;
-    private Double latitude;
-    private Double longitude;
+    private Double latitude;   // 위도 (업로드 시에만 설정, 수정 불가)
+    private Double longitude;  // 경도 (업로드 시에만 설정, 수정 불가)
     private String address;
 
     @Enumerated(EnumType.STRING)
@@ -35,9 +35,7 @@ public class Photo extends BaseEntity {
     private LocalDateTime takenAt;
 
     // 포토 수정 메서드
-    public void updatePhoto(Double latitude, Double longitude, String address, String memo, Visibility visibility) {
-        if (latitude != null) this.latitude = latitude;
-        if (longitude != null) this.longitude = longitude;
+    public void updatePhoto(String address, String memo, Visibility visibility) {
         if (address != null) this.address = address;
         if (memo != null) this.memo = memo;
         if (visibility != null) this.visibility = visibility;

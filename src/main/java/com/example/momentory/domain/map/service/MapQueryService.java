@@ -9,6 +9,7 @@ import com.example.momentory.domain.photo.entity.Photo;
 import com.example.momentory.domain.photo.entity.Visibility;
 import com.example.momentory.domain.photo.repository.StampRepository;
 import com.example.momentory.domain.user.entity.User;
+import com.example.momentory.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,8 @@ public class MapQueryService {
     private final MapMarkerRepository mapMarkerRepository;
     private final StampRepository stampRepository;
     private final RegionRepository regionRepository;
+    private final UserRegionColorService userRegionColorService;
+    private final UserRepository userRepository;
 
     // ========== 전체 지도용 메서드 ==========
     
@@ -38,13 +41,14 @@ public class MapQueryService {
                 .filter(photo -> photo.getVisibility() == Visibility.PUBLIC)
                 .map(photo -> PhotoReseponseDto.PhotoResponse.builder()
                         .photoId(photo.getPhotoId())
+                        .imageName(photo.getImageName())
                         .imageUrl(photo.getImageUrl())
                         .latitude(photo.getLatitude())
                         .longitude(photo.getLongitude())
                         .address(photo.getAddress())
                         .memo(photo.getMemo())
                         .visibility(photo.getVisibility())
-                        .takenAt(photo.getTakenAt())
+                        .createdAt(photo.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -65,13 +69,14 @@ public class MapQueryService {
 
         return PhotoReseponseDto.PhotoResponse.builder()
                 .photoId(latestPublicPhoto.getPhotoId())
+                .imageName(latestPublicPhoto.getImageName())
                 .imageUrl(latestPublicPhoto.getImageUrl())
                 .latitude(latestPublicPhoto.getLatitude())
                 .longitude(latestPublicPhoto.getLongitude())
                 .address(latestPublicPhoto.getAddress())
                 .memo(latestPublicPhoto.getMemo())
                 .visibility(latestPublicPhoto.getVisibility())
-                .takenAt(latestPublicPhoto.getTakenAt())
+                .createdAt(latestPublicPhoto.getCreatedAt())
                 .build();
     }
 
@@ -104,16 +109,19 @@ public class MapQueryService {
         return markers.stream()
                 .map(MapMarker::getPhoto)
                 .filter(photo -> photo.getUser().getUserId().equals(user.getUserId()))
-                .map(photo -> PhotoReseponseDto.PhotoResponse.builder()
-                        .photoId(photo.getPhotoId())
-                        .imageUrl(photo.getImageUrl())
-                        .latitude(photo.getLatitude())
-                        .longitude(photo.getLongitude())
-                        .address(photo.getAddress())
-                        .memo(photo.getMemo())
-                        .visibility(photo.getVisibility())
-                        .takenAt(photo.getTakenAt())
-                        .build())
+                .map(photo -> {
+                    return PhotoReseponseDto.PhotoResponse.builder()
+                            .photoId(photo.getPhotoId())
+                            .imageName(photo.getImageName())
+                            .imageUrl(photo.getImageUrl())
+                            .latitude(photo.getLatitude())
+                            .longitude(photo.getLongitude())
+                            .address(photo.getAddress())
+                            .memo(photo.getMemo())
+                            .visibility(photo.getVisibility())
+                            .createdAt(photo.getCreatedAt())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 
@@ -123,23 +131,28 @@ public class MapQueryService {
     public PhotoReseponseDto.PhotoResponse getLatestUserPhotoByRegion(String regionName, User user) {
         List<MapMarker> markers = mapMarkerRepository.findAllByRegion(regionName);
         
-        Photo latestUserPhoto = markers.stream()
-                .map(MapMarker::getPhoto)
-                .filter(photo -> photo.getUser().getUserId().equals(user.getUserId()))
+        MapMarker latestUserMarker = markers.stream()
+                .filter(marker -> marker.getPhoto().getUser().getUserId().equals(user.getUserId()))
                 .findFirst()
                 .orElse(null);
                 
-        if (latestUserPhoto == null) return null;
+        if (latestUserMarker == null) return null;
+
+        Photo latestUserPhoto = latestUserMarker.getPhoto();
+
+        // 사용자의 지역별 색깔 조회 (UserRegionColor에서만)
+        String regionColor = userRegionColorService.getRegionColor(user, regionName).orElse(null);
 
         return PhotoReseponseDto.PhotoResponse.builder()
                 .photoId(latestUserPhoto.getPhotoId())
+                .imageName(latestUserPhoto.getImageName())
                 .imageUrl(latestUserPhoto.getImageUrl())
                 .latitude(latestUserPhoto.getLatitude())
                 .longitude(latestUserPhoto.getLongitude())
                 .address(latestUserPhoto.getAddress())
                 .memo(latestUserPhoto.getMemo())
                 .visibility(latestUserPhoto.getVisibility())
-                .takenAt(latestUserPhoto.getTakenAt())
+                .createdAt(latestUserPhoto.getCreatedAt())
                 .build();
     }
 
@@ -165,22 +178,31 @@ public class MapQueryService {
     // ========== 지역 방문 여부 확인 ==========
     
     /**
-     * 현재 로그인한 사용자의 모든 지역 방문 여부를 한번에 조회
+     * 현재 로그인한 사용자가 방문한 지역의 색깔 정보를 조회
      * @param userId 현재 로그인한 사용자 ID
-     * @return Map<String, Boolean> - 지역명과 방문 여부
+     * @return Map<String, String> - 방문한 지역명과 해당 지역의 색깔
      */
-    public Map<String, Boolean> getAllRegionVisitStatus(Long userId) {
+    public Map<String, String> getAllRegionVisitStatus(Long userId) {
         // 1. 모든 지역 목록 조회
         List<Region> allRegions = regionRepository.findAll();
         
-        // 2. 각 지역별 방문 여부 확인
-        Map<String, Boolean> visitStatusMap = new HashMap<>();
+        // 2. 방문한 지역만 색깔과 함께 반환
+        Map<String, String> visitedRegionsMap = new HashMap<>();
         
         for (Region region : allRegions) {
             boolean hasVisited = stampRepository.existsByUserUserIdAndRegion(userId, region.getName());
-            visitStatusMap.put(region.getName(), hasVisited);
+            if (hasVisited) {
+                // 방문한 지역의 경우, UserRegionColor에서 색깔 정보 가져오기
+                User user = userRepository.findById(userId).orElse(null);
+                if (user != null) {
+                    String color = userRegionColorService.getRegionColor(user, region.getName()).orElse(null);
+                    if (color != null) {
+                        visitedRegionsMap.put(region.getName(), color);
+                    }
+                }
+            }
         }
         
-        return visitStatusMap;
+        return visitedRegionsMap;
     }
 }

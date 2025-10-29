@@ -44,4 +44,29 @@ public class PhotoReseponseDto {
         private boolean hasNearbyCulturalSpots;
         private String nearbyCulturalSpotName;
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class NearbySpotsResponse{
+        private Long photoId;
+        private Double latitude;
+        private Double longitude;
+        private String address;
+        private java.util.List<SpotInfo> spots;
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class SpotInfo{
+        private String name;
+        private String type;
+        private String region;
+        private String address;
+        private String tel;
+        private String imageUrl;
+    }
 }

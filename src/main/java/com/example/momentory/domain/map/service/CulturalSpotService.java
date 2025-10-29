@@ -159,6 +159,55 @@ public class CulturalSpotService {
         };
     }
 
+    /**
+     * 업로드 후 관광지 추천 (거리 제한 없이 랜덤 10개)
+     */
+    public List<Map<String, String>> getRecommendedSpots(double lat, double lon) {
+        try {
+            // TourAPI locationBasedList1 호출 (거리 제한 없이)
+            String url = String.format(
+                    "https://apis.data.go.kr/B551011/KorService1/locationBasedList1?serviceKey=%s&mapX=%f&mapY=%f&radius=%d&MobileOS=ETC&MobileApp=Momentory&_type=json",
+                    tourApiKey, lon, lat, 20000 // 반경 20km로 넓게 설정
+            );
+
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class);
+
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode items = root.path("response").path("body").path("items").path("item");
+
+            if (items.isEmpty()) return new ArrayList<>();
+
+            List<Map<String, String>> allSpots = new ArrayList<>();
+
+            for (JsonNode item : items) {
+                String title = item.path("title").asText();
+                String contentTypeId = item.path("contenttypeid").asText();
+                String addr = item.path("addr1").asText();
+                String tel = item.path("tel").asText();
+                String firstImage = item.path("firstimage").asText();
+
+                // 모든 타입 포함 (필터링 없음)
+                allSpots.add(Map.of(
+                        "name", title,
+                        "type", mapContentTypeToStampType(contentTypeId),
+                        "region", extractRegionName(addr),
+                        "address", addr,
+                        "tel", tel,
+                        "imageUrl", firstImage
+                ));
+            }
+
+            // 랜덤으로 섞고 최대 10개 반환
+            Collections.shuffle(allSpots);
+            return allSpots.stream().limit(10).toList();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
     private String extractRegionName(String address) {
         if (address == null || address.isEmpty()) return "기타";
         String[] parts = address.split(" ");

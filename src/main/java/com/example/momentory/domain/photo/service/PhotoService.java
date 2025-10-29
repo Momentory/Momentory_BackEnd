@@ -62,7 +62,7 @@ public class PhotoService {
                 double distance = Double.parseDouble(spot.get("distance"));
                 String type = spot.get("type");
 
-                // ✅ 300m 이내일 때만 문화 스탬프 후보 인정
+                // 300m 이내일 때만 문화 스탬프 후보 인정
                 if (distance <= 300) {
                     hasNearbyCulturalSpots = true;
                     nearbyCulturalSpotName = spot.get("name");
@@ -171,5 +171,55 @@ public class PhotoService {
         photo.updatePhoto(null, null, null, null, visibility);
 
         return PhotoConverter.toPhotoResponse(photo);
+    }
+
+    // 업로드 후 근처 관광지 추천
+    public PhotoReseponseDto.NearbySpotsResponse getNearbySpots(Long photoId, Double latitude, Double longitude) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new GeneralException(ErrorStatus._UNAUTHORIZED);
+        }
+
+        Photo photo = photoRepository.findById(photoId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+
+        // 본인의 포토만 조회 가능
+        if (!photo.getUser().getUserId().equals(userId)) {
+            throw new GeneralException(ErrorStatus._FORBIDDEN);
+        }
+
+        // 위경도가 없으면 빈 리스트 반환
+        if (latitude == null || longitude == null) {
+            return PhotoReseponseDto.NearbySpotsResponse.builder()
+                    .photoId(photoId)
+                    .latitude(latitude)
+                    .longitude(longitude)
+                    .address(photo.getAddress())
+                    .spots(new java.util.ArrayList<>())
+                    .build();
+        }
+
+        // 관광지 추천 조회 (사용자가 제공한 위경도 사용)
+        List<Map<String, String>> recommendedSpots = culturalSpotService.getRecommendedSpots(latitude, longitude);
+
+        // SpotInfo 리스트로 변환
+        List<PhotoReseponseDto.SpotInfo> spots = recommendedSpots.stream()
+                .map(spot -> PhotoReseponseDto.SpotInfo.builder()
+                        .name(spot.get("name"))
+                        .type(spot.get("type"))
+                        .region(spot.get("region"))
+                        .address(spot.get("address"))
+                        .tel(spot.get("tel"))
+                        .imageUrl(spot.get("imageUrl"))
+                        .build())
+                .toList();
+
+        return PhotoReseponseDto.NearbySpotsResponse.builder()
+                .photoId(photoId)
+                .latitude(latitude)
+                .longitude(longitude)
+                .address(photo.getAddress())
+                .spots(spots)
+                .build();
     }
 }

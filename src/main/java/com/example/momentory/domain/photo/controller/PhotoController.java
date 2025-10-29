@@ -48,4 +48,13 @@ public class PhotoController {
             @RequestBody PhotoRequestDto.VisibilityChange visibilityRequest) {
         return ApiResponse.onSuccess(photoService.changePhotoVisibility(photoId, visibilityRequest));
     }
+
+    // 업로드 후 근처 관광지 추천
+    @PutMapping("/{photoId}/nearby")
+    public ApiResponse<PhotoReseponseDto.NearbySpotsResponse> getNearbySpots(
+            @PathVariable Long photoId,
+            @RequestParam Double latitude,
+            @RequestParam Double longitude) {
+        return ApiResponse.onSuccess(photoService.getNearbySpots(photoId, latitude, longitude));
+    }
 }

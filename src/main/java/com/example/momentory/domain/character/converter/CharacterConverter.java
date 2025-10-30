@@ -1,0 +1,154 @@
+package com.example.momentory.domain.character.converter;
+
+import com.example.momentory.domain.character.dto.AdminItemDto;
+import com.example.momentory.domain.character.dto.CharacterDto;
+import com.example.momentory.domain.character.dto.ItemDto;
+import com.example.momentory.domain.character.dto.WardrobeDto;
+import com.example.momentory.domain.character.entity.Character;
+import com.example.momentory.domain.character.entity.CharacterItem;
+import com.example.momentory.domain.character.entity.UserItem;
+import com.example.momentory.domain.character.entity.Wardrobe;
+import org.springframework.stereotype.Component;
+
+@Component
+public class CharacterConverter {
+
+    public CharacterDto.Response toCharacterResponse(Character character) {
+        return CharacterDto.Response.builder()
+                .characterId(character.getCharacterId())
+                .characterType(character.getCharacterType())
+                .level(character.getLevel())
+                .isCurrentCharacter(character.isCurrentCharacter())
+                .equippedItems(toEquippedItems(character))
+                .build();
+    }
+
+    public CharacterDto.CurrentCharacterResponse toCurrentCharacterResponse(Character character) {
+        return CharacterDto.CurrentCharacterResponse.builder()
+                .characterId(character.getCharacterId())
+                .characterType(character.getCharacterType())
+                .level(character.getLevel())
+                .equipped(toEquippedItems(character))
+                .build();
+    }
+
+    public CharacterDto.ListResponse toCharacterListResponse(Character character) {
+        return CharacterDto.ListResponse.builder()
+                .characterId(character.getCharacterId())
+                .characterType(character.getCharacterType())
+                .level(character.getLevel())
+                .isCurrentCharacter(character.isCurrentCharacter())
+                .equippedItems(toEquippedItems(character))
+                .build();
+    }
+
+    private CharacterDto.EquippedItems toEquippedItems(Character character) {
+        return CharacterDto.EquippedItems.builder()
+                .clothing(toItemInfo(character.getEquippedClothing()))
+                .expression(toItemInfo(character.getEquippedExpression()))
+                .effect(toItemInfo(character.getEquippedEffect()))
+                .decoration(toItemInfo(character.getEquippedDecoration()))
+                .build();
+    }
+
+    private CharacterDto.ItemInfo toItemInfo(UserItem userItem) {
+        if (userItem == null) {
+            return null;
+        }
+        return CharacterDto.ItemInfo.builder()
+                .itemId(userItem.getItem().getItemId())
+                .name(userItem.getItem().getName())
+                .imageUrl(userItem.getItem().getImageUrl())
+                .build();
+    }
+
+    public ItemDto.Response toItemResponse(UserItem userItem) {
+        return ItemDto.Response.builder()
+                .itemId(userItem.getItem().getItemId())
+                .name(userItem.getItem().getName())
+                .category(userItem.getItem().getCategory())
+                .imageUrl(userItem.getItem().getImageUrl())
+                .price(userItem.getItem().getPrice())
+                .unlockLevel(userItem.getItem().getUnlockLevel())
+                .isOwned(true)
+                .isEquipped(userItem.isEquipped())
+                .build();
+    }
+
+    public ItemDto.ShopItemResponse toShopItemResponse(CharacterItem item, boolean isOwned) {
+        return ItemDto.ShopItemResponse.builder()
+                .itemId(item.getItemId())
+                .name(item.getName())
+                .category(item.getCategory())
+                .imageUrl(item.getImageUrl())
+                .price(item.getPrice())
+                .unlockLevel(item.getUnlockLevel())
+                .isOwned(isOwned)
+                .build();
+    }
+
+    public ItemDto.MyItemResponse toMyItemResponse(UserItem userItem) {
+        return ItemDto.MyItemResponse.builder()
+                .itemId(userItem.getItem().getItemId())
+                .name(userItem.getItem().getName())
+                .category(userItem.getItem().getCategory())
+                .imageUrl(userItem.getItem().getImageUrl())
+                .isEquipped(userItem.isEquipped())
+                .build();
+    }
+
+    public WardrobeDto.Response toWardrobeResponse(Wardrobe wardrobe) {
+        return WardrobeDto.Response.builder()
+                .wardrobeId(wardrobe.getWardrobeId())
+                .clothing(toWardrobeItemInfo(wardrobe.getClothing()))
+                .expression(toWardrobeItemInfo(wardrobe.getExpression()))
+                .effect(toWardrobeItemInfo(wardrobe.getEffect()))
+                .decoration(toWardrobeItemInfo(wardrobe.getDecoration()))
+                .build();
+    }
+
+    public WardrobeDto.ListResponse toWardrobeListResponse(Wardrobe wardrobe) {
+        return WardrobeDto.ListResponse.builder()
+                .wardrobeId(wardrobe.getWardrobeId())
+                .clothing(toWardrobeItemInfo(wardrobe.getClothing()))
+                .expression(toWardrobeItemInfo(wardrobe.getExpression()))
+                .effect(toWardrobeItemInfo(wardrobe.getEffect()))
+                .decoration(toWardrobeItemInfo(wardrobe.getDecoration()))
+                .build();
+    }
+
+    private WardrobeDto.ItemInfo toWardrobeItemInfo(UserItem userItem) {
+        if (userItem == null) {
+            return null;
+        }
+        return WardrobeDto.ItemInfo.builder()
+                .itemId(userItem.getItem().getItemId())
+                .name(userItem.getItem().getName())
+                .imageUrl(userItem.getItem().getImageUrl())
+                .build();
+    }
+
+    // 관리자용 메서드들
+    public AdminItemDto.Response toAdminItemResponse(CharacterItem item) {
+        return AdminItemDto.Response.builder()
+                .itemId(item.getItemId())
+                .name(item.getName())
+                .category(item.getCategory())
+                .imageUrl(item.getImageUrl())
+                .price(item.getPrice())
+                .unlockLevel(item.getUnlockLevel())
+                .build();
+    }
+
+    public AdminItemDto.ListResponse toAdminItemListResponse(CharacterItem item) {
+        return AdminItemDto.ListResponse.builder()
+                .itemId(item.getItemId())
+                .name(item.getName())
+                .category(item.getCategory())
+                .imageUrl(item.getImageUrl())
+                .price(item.getPrice())
+                .unlockLevel(item.getUnlockLevel())
+                .build();
+    }
+}
+

@@ -79,6 +79,8 @@ public class PhotoService {
             log.info("[문화시설 검색] 위도/경도 정보가 없어 문화시설 검색을 건너뜁니다.");
         }
 
+        user.getProfile().plusPoint(50); //사진 업로드시 50p 추가
+
         return PhotoReseponseDto.PhotoUploadResponse.builder()
                 .photoId(savedPhoto.getPhotoId())
                 .imageName(savedPhoto.getImageName())

@@ -19,10 +19,19 @@ public class CharacterItem extends BaseEntity {
     private String name;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
     private ItemCategory category;
 
     private String imageUrl;
     private int price;
     private int unlockLevel;
+
+    public void update(String name, ItemCategory category, String imageUrl, int price, int unlockLevel) {
+        this.name = name;
+        this.category = category;
+        this.imageUrl = imageUrl;
+        this.price = price;
+        this.unlockLevel = unlockLevel;
+    }
 }
 

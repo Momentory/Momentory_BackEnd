@@ -102,10 +102,6 @@ public class WardrobeService {
             currentCharacter.equipItem(wardrobe.getDecoration());
             wardrobe.getDecoration().setEquipped(true);
         }
-        if (wardrobe.getDecoration() != null) {
-            currentCharacter.equipItem(wardrobe.getDecoration());
-            wardrobe.getDecoration().setEquipped(true);
-        }
 
         return characterConverter.toWardrobeResponse(wardrobe);
     }

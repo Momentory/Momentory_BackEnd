@@ -41,7 +41,6 @@ public class UserRegionColorService {
             // 기존 색깔 업데이트
             UserRegionColor userRegionColor = existingColor.get();
             userRegionColor.updateColor(color);
-            log.info("[지역 색깔 업데이트] 사용자: {}, 지역: {}, 색깔: {}", user.getNickname(), regionName, color);
             return userRegionColor;
         } else {
             // 새로운 색깔 생성
@@ -51,7 +50,6 @@ public class UserRegionColorService {
                     .color(color)
                     .build();
             UserRegionColor saved = userRegionColorRepository.save(userRegionColor);
-            log.info("[지역 색깔 생성] 사용자: {}, 지역: {}, 색깔: {}", user.getNickname(), regionName, color);
             return saved;
         }
     }
@@ -88,7 +86,6 @@ public class UserRegionColorService {
                 user.getUserId(), regionName);
         if (userRegionColor.isPresent()) {
             userRegionColorRepository.delete(userRegionColor.get());
-            log.info("[지역 색깔 삭제] 사용자: {}, 지역: {}", user.getNickname(), regionName);
         }
     }
 }

@@ -9,7 +9,7 @@ import com.example.momentory.domain.photo.dto.PhotoReseponseDto;
 import com.example.momentory.domain.photo.entity.Photo;
 import com.example.momentory.domain.photo.entity.Visibility;
 import com.example.momentory.domain.photo.repository.PhotoRepository;
-import com.example.momentory.domain.photo.service.StampService;
+import com.example.momentory.domain.stamp.repository.StampRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.repository.UserRepository;
 import com.example.momentory.global.code.status.ErrorStatus;
@@ -33,7 +33,7 @@ public class PhotoService {
     private final MapMarkerService mapMarkerService;
     private final CulturalSpotService culturalSpotService;
     private final KakaoMapService kakaoMapService;
-    private final com.example.momentory.domain.photo.repository.StampRepository stampRepository;
+    private final StampRepository stampRepository;
 
     // 포토 업로드
     @Transactional
@@ -68,16 +68,10 @@ public class PhotoService {
                 if (distance <= 300) {
                     hasNearbyCulturalSpots = true;
                     nearbyCulturalSpotName = spot.get("name");
-                    log.info("[문화 스탬프 후보] '{}' ({}, {}m)", nearbyCulturalSpotName, type, distance);
-                } else {
-                    log.info("[문화 스탬프 제외] '{}'은 {}m로 300m 초과 → 미발급", spot.get("name"), distance);
                 }
-            } else {
-                log.info("[문화 스탬프 후보] 근처 문화시설 없음");
             }
-        } else {
-            log.info("[문화시설 검색] 위도/경도 정보가 없어 문화시설 검색을 건너뜁니다.");
         }
+
 
         user.getProfile().plusPoint(50); //사진 업로드시 50p 추가
 
@@ -178,7 +172,7 @@ public class PhotoService {
     }
 
     // 업로드 후 근처 관광지 추천
-    public PhotoReseponseDto.NearbySpotsResponse getNearbySpots(Long photoId) {
+    public PhotoReseponseDto.NearbySpotsResponse getNearbySpots(Long photoId, int limit) {
         Long userId = SecurityUtils.getCurrentUserId();
         if (userId == null) {
             throw new GeneralException(ErrorStatus._UNAUTHORIZED);
@@ -204,11 +198,15 @@ public class PhotoService {
         // 지역명 추출
         String regionName = extractCityName(photo.getAddress());
 
-        // 관광지 추천 조회
-        List<Map<String, String>> recommendedSpots = culturalSpotService.getRecommendedSpots(latitude, longitude);
+        // 관광지 추천 조회 (요청 개수만 TourAPI에 요청하고, 개수 제한 적용)
+        if (limit <= 0) {
+            limit = 4;
+        }
+        List<Map<String, String>> recommendedSpots = culturalSpotService.getRecommendedSpots(latitude, longitude, limit);
 
         // SpotInfo 리스트로 변환
         List<PhotoReseponseDto.SpotInfo> spots = recommendedSpots.stream()
+                .limit(limit)
                 .map(spot -> PhotoReseponseDto.SpotInfo.builder()
                         .name(spot.get("name"))
                         .type(spot.get("type"))

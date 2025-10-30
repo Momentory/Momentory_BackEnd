@@ -1,5 +1,6 @@
 package com.example.momentory.domain.map.service;
 
+import com.example.momentory.domain.stamp.entity.CulturalStampData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -30,14 +31,11 @@ public class CulturalSpotService {
      */
     public Optional<Map<String, String>> getNearbyCulturalSpot(double lat, double lon) {
         try {
-            // ✅ 1. 기본 요청 URL 구성
             String url = String.format(
                     BASE_URL_V2 + "/locationBasedList2" +
                             "?serviceKey=%s&mapX=%f&mapY=%f&radius=%d&arrange=E&MobileOS=ETC&MobileApp=Momentory&_type=json",
                     tourApiKey, lon, lat, 500
             );
-
-            log.info("[TourAPI 요청] 위치 기반 문화시설 조회 URL: {}", url);
 
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response =
@@ -51,7 +49,6 @@ public class CulturalSpotService {
                 return Optional.empty();
             }
 
-            // ✅ 2. 결과 파싱
             List<Map<String, String>> nearbySpots = new ArrayList<>();
 
             for (JsonNode item : items) {
@@ -76,18 +73,14 @@ public class CulturalSpotService {
             }
 
             if (nearbySpots.isEmpty()) {
-                log.info("[TourAPI] 반경 내 문화형 시설 없음 (lat={}, lon={})", lat, lon);
                 return Optional.empty();
             }
 
-// ✅ 3. 스탬프 기준 리스트
-            List<String> STAMP_SPOTS = List.of(
-                    "수원 화성", "성남 남한산성", "의정부 행복로", "안양천 벚꽃길", "부천 만화박물관",
-                    "광명 동굴", "평택항", "동두천 계곡", "안산 누에섬", "고양 킨텍스",
-                    "과천 서울대공원", "구리 한강유채꽃", "남양주", "오산 독산성"
-            );
+            List<String> STAMP_SPOTS = CulturalStampData.getSTAMPS()
+                    .stream()
+                    .map(CulturalStampData.CulturalStamp::getName)
+                    .collect(Collectors.toList());
 
-// ✅ 3-1. 데이터 이름 → 스탬프 이름 수동 매핑
             Map<String, String> KNOWN_NAME_MAP = Map.ofEntries(
                     Map.entry("수원 화성 [유네스코 세계유산]", "수원 화성"),
                     Map.entry("평택항 홍보관", "평택항"),
@@ -98,7 +91,6 @@ public class CulturalSpotService {
                     Map.entry("왕방계곡", "동두천 계곡")
             );
 
-// ✅ 4. 스탬프 이름 우선 필터링 + 매핑 보정
             Optional<Map<String, String>> matchedStamp = nearbySpots.stream()
                     .map(spot -> {
                         String name = spot.get("name");
@@ -122,11 +114,9 @@ public class CulturalSpotService {
                     .findFirst();
 
             if (matchedStamp.isPresent()) {
-                log.info("[TourAPI 매칭결과] 스탬프 일치: {}", matchedStamp.get().get("name"));
                 return matchedStamp;
             }
 
-            // ✅ 5. 타입별 우선순위 정렬 (문화시설 > 랜드마크 > 축제 > 음식)
             Comparator<Map<String, String>> byTypePriority = Comparator.comparingInt(
                     spot -> switch (spot.get("type")) {
                         case "CULTURAL_HERITAGE" -> 1;
@@ -143,18 +133,15 @@ public class CulturalSpotService {
 
             Map<String, String> selected = nearbySpots.get(0);
 
-            // ✅ 6. 축제 이름을 스탬프 기준으로 교정
             for (String standard : STAMP_SPOTS) {
                 String normalizedStandard = standard.replace(" ", "");
                 String normalizedName = selected.get("name").replace(" ", "");
                 if (normalizedName.contains(normalizedStandard) || normalizedStandard.contains(normalizedName)) {
-                    log.info("[TourAPI 교정] '{}' → '{}'", selected.get("name"), standard);
                     selected.put("name", standard);
                     break;
                 }
             }
 
-            // ✅ 7. 좌표 기반 보정 (스탬프 좌표 등록)
             Map<String, double[]> STAMP_COORDS = Map.of(
                     "수원 화성", new double[]{37.285, 127.019},
                     "부천 만화박물관", new double[]{37.504, 126.776},
@@ -166,17 +153,10 @@ public class CulturalSpotService {
             for (Map.Entry<String, double[]> entry : STAMP_COORDS.entrySet()) {
                 double distance = haversine(lat, lon, entry.getValue()[0], entry.getValue()[1]);
                 if (distance <= 500) {
-                    log.info("[TourAPI 좌표보정] {}(약 {:.0f}m 거리) → 강제 스탬프 매칭", entry.getKey(), distance);
                     selected.put("name", entry.getKey());
                     break;
                 }
             }
-
-            log.info("[TourAPI 최종선택] {} ({} / {} / {}m)",
-                    selected.get("name"),
-                    selected.get("type"),
-                    selected.get("region"),
-                    selected.get("distance"));
 
             return Optional.of(selected);
 
@@ -244,8 +224,6 @@ public class CulturalSpotService {
                     tourApiKey, encoded
             );
 
-            log.info("[TourAPI 요청] 장소명 검색: {}", spotName);
-
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response =
                     restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(new HttpHeaders()), String.class);
@@ -269,7 +247,6 @@ public class CulturalSpotService {
             result.put("type", type);
             result.put("region", extractRegionName(addr));
 
-            log.info("[TourAPI 응답] {} → type={}, region={}", spotName, type, result.get("region"));
             return Optional.of(result);
 
         } catch (Exception e) {
@@ -295,14 +272,24 @@ public class CulturalSpotService {
      * 업로드 후 관광지 추천 (거리 제한 없이 랜덤 10개)
      */
     public List<Map<String, String>> getRecommendedSpots(double lat, double lon) {
+        // 어떤 경로로 호출돼도 항상 4개만 요청/반환
+        return getRecommendedSpots(lat, lon, 4);
+    }
+
+    /**
+     * 추천 관광지 조회 (개수 제한 버전). TourAPI 호출 자체를 limit에 맞춰 줄이고 결과도 limit로 제한.
+     */
+    public List<Map<String, String>> getRecommendedSpots(double lat, double lon, int limit) {
         try {
+            if (limit <= 0) {
+                limit = 4;
+            }
             String url = String.format(
                     BASE_URL_V2 + "/locationBasedList2?serviceKey=%s&MobileOS=ETC&MobileApp=Momentory&_type=json"
-                            + "&mapX=%f&mapY=%f&radius=10000&numOfRows=100&pageNo=1&arrange=E",
-                    tourApiKey, lon, lat
+                            + "&mapX=%f&mapY=%f&radius=10000&numOfRows=%d&pageNo=1&arrange=E",
+                    tourApiKey, lon, lat, Math.max(limit, 3)
             );
 
-            log.info("[TourAPI 요청] 추천 관광지 URL: {}", url);
 
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response =
@@ -333,11 +320,10 @@ public class CulturalSpotService {
                 allSpots.add(spot);
             }
 
-            Collections.shuffle(allSpots);
-            return allSpots.stream().limit(10).toList();
+            return allSpots.stream().limit(limit).toList();
 
         } catch (Exception e) {
-            log.error("[TourAPI 오류] getRecommendedSpots 실패: {}", e.getMessage(), e);
+            log.error("[TourAPI 오류] getRecommendedSpots(lat,lon,limit) 실패: {}", e.getMessage(), e);
             return List.of();
         }
     }
@@ -359,7 +345,6 @@ public class CulturalSpotService {
                     tourApiKey, startDateYmd
             );
 
-            log.info("[TourAPI 요청] 경기도 축제 조회 URL: {}", url);
 
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response =
@@ -400,8 +385,6 @@ public class CulturalSpotService {
                             + "&arrange=O&numOfRows=20&pageNo=1",
                     tourApiKey
             );
-
-            log.info("[TourAPI 요청] 경기도 관광지 조회 URL: {}", url);
 
             RestTemplate restTemplate = new RestTemplate();
             ResponseEntity<String> response =

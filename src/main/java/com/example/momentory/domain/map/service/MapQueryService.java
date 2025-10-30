@@ -7,7 +7,7 @@ import com.example.momentory.domain.map.repository.RegionRepository;
 import com.example.momentory.domain.photo.dto.PhotoReseponseDto;
 import com.example.momentory.domain.photo.entity.Photo;
 import com.example.momentory.domain.photo.entity.Visibility;
-import com.example.momentory.domain.photo.repository.StampRepository;
+import com.example.momentory.domain.stamp.repository.StampRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

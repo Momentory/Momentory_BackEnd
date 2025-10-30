@@ -1,6 +1,5 @@
-package com.example.momentory.domain.photo.dto;
+package com.example.momentory.domain.stamp.dto;
 
-import com.example.momentory.domain.photo.entity.StampType;
 import lombok.Getter;
 import lombok.Setter;
 

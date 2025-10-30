@@ -83,7 +83,25 @@ public enum ErrorStatus implements BaseErrorCode {
     INVALID_TYPE(HttpStatus.BAD_REQUEST, "COMMON409", "입력 타입이 올바르지 않습니다."),
 
     IMAGE_FAILED(HttpStatus.BAD_REQUEST, "IMAGE4001", "이미지 업로드에 실패하였습니다."),
-    IMAGE_TEXT_FAILED(HttpStatus.BAD_REQUEST, "IMAGETEXT4001", "이미지 텍스트 추출에 실패하였습니다.");
+    IMAGE_TEXT_FAILED(HttpStatus.BAD_REQUEST, "IMAGETEXT4001", "이미지 텍스트 추출에 실패하였습니다."),
+
+    // 캐릭터 관련 에러
+    CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER4001", "캐릭터를 찾을 수 없습니다."),
+    CHARACTER_TYPE_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "CHARACTER4002", "이미 해당 타입의 캐릭터가 존재합니다."),
+    CHARACTER_ACCESS_DENIED(HttpStatus.FORBIDDEN, "CHARACTER4003", "해당 캐릭터에 접근할 권한이 없습니다."),
+    CURRENT_CHARACTER_NOT_FOUND(HttpStatus.NOT_FOUND, "CHARACTER4004", "현재 선택된 캐릭터가 없습니다."),
+
+    // 아이템 관련 에러
+    ITEM_NOT_FOUND(HttpStatus.NOT_FOUND, "ITEM4001", "아이템을 찾을 수 없습니다."),
+    ITEM_NOT_OWNED(HttpStatus.BAD_REQUEST, "ITEM4002", "보유하지 않은 아이템입니다."),
+    ITEM_ALREADY_OWNED(HttpStatus.BAD_REQUEST, "ITEM4003", "이미 보유한 아이템입니다."),
+    NO_ITEMS_AVAILABLE(HttpStatus.NOT_FOUND, "ITEM4004", "사용 가능한 아이템이 없습니다."),
+    ALL_ITEMS_OWNED(HttpStatus.BAD_REQUEST, "ITEM4005", "모든 아이템을 보유하고 있습니다."),
+    INSUFFICIENT_POINTS(HttpStatus.BAD_REQUEST, "ITEM4006", "포인트가 부족합니다."),
+
+    // 옷장 관련 에러
+    WARDROBE_NOT_FOUND(HttpStatus.NOT_FOUND, "WARDROBE4001", "옷장 슬롯을 찾을 수 없습니다."),
+    WARDROBE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "WARDROBE4002", "해당 옷장에 접근할 권한이 없습니다.");
 
 
     private final HttpStatus httpStatus;

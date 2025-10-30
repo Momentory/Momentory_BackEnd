@@ -26,5 +26,10 @@ public class UserItem extends BaseEntity {
     private CharacterItem item;
 
     private boolean isEquipped;
+
+    // 편의 메서드
+    public void setEquipped(boolean equipped) {
+        this.isEquipped = equipped;
+    }
 }
 

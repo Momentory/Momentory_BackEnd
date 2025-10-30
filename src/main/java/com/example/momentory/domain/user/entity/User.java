@@ -79,6 +79,7 @@ public class User extends BaseEntity {
         this.isActive = false;
         this.nickname = "탈퇴한 사용자";
     }
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Token> tokens = new ArrayList<>();

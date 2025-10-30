@@ -64,4 +64,18 @@ public class UserProfile extends BaseEntity {
         this.bio = null;
     }
 
+    public void plusPoint(int point){
+        this.point += point;
+    }
+
+    public void minusPoint(int point){
+        if (this.point < point) {
+            throw new IllegalStateException("포인트가 부족합니다.");
+        }
+        this.point -= point;
+    }
+
+    public boolean hasEnoughPoints(int requiredPoints) {
+        return this.point >= requiredPoints;
+    }
 }

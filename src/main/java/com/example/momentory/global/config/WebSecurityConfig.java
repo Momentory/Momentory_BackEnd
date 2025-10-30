@@ -105,7 +105,9 @@ public class WebSecurityConfig {
         List<String> allowedOrigins = List.of(
                 "http://localhost:8080",
                 "http://localhost:5173",
-                "http://localhost:3000"
+                "http://localhost:3000",
+                "https://www.momentory.store",
+                "http://www.momentory.store"
         );
 
         config.setAllowedOrigins(allowedOrigins);

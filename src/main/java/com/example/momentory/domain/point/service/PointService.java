@@ -25,6 +25,11 @@ public class PointService {
     private final PointHistoryRepository pointHistoryRepository;
     private final CharacterService characterService;
 
+    // 포인트 액션별 포인트 값
+    private static final int RECEIVE_LIKE_POINTS = 5;      // 좋아요 받을 때
+    private static final int FOLLOW_GAINED_POINTS = 10;    // 팔로워 증가 시
+    
+    // 일일 제한 횟수
     private static final int UPLOAD_DAILY_LIMIT = 3;
     private static final int LIKE_DAILY_LIMIT = 50;
     private static final int FOLLOW_DAILY_LIMIT = 20;
@@ -130,6 +135,18 @@ public class PointService {
             case RECEIVE_LIKE -> LIKE_DAILY_LIMIT;
             case FOLLOW_GAINED -> FOLLOW_DAILY_LIMIT;
             default -> Integer.MAX_VALUE;
+        };
+    }
+
+    /**
+     * 액션 타입별 포인트 값 반환
+     * 커뮤니티 기능(좋아요, 팔로우) 구현 시 사용
+     */
+    public int getPointAmount(PointActionType actionType) {
+        return switch (actionType) {
+            case RECEIVE_LIKE -> RECEIVE_LIKE_POINTS;       // +5p
+            case FOLLOW_GAINED -> FOLLOW_GAINED_POINTS;     // +10p
+            default -> 0;  // 다른 액션들은 직접 amount를 전달
         };
     }
 

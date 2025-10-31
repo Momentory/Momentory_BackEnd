@@ -106,7 +106,12 @@ public enum ErrorStatus implements BaseErrorCode {
     // 앨범 관련 에러
     ALBUM_NOT_FOUND(HttpStatus.NOT_FOUND, "ALBUM4001", "앨범을 찾을 수 없습니다."),
     ALBUM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ALBUM4002", "해당 앨범에 접근할 권한이 없습니다."),
-    SHARED_ALBUM_NOT_FOUND(HttpStatus.NOT_FOUND, "ALBUM4003", "공유된 앨범을 찾을 수 없거나 공유가 해제되었습니다.");
+    SHARED_ALBUM_NOT_FOUND(HttpStatus.NOT_FOUND, "ALBUM4003", "공유된 앨범을 찾을 수 없거나 공유가 해제되었습니다."),
+
+    // 룰렛 관련 에러
+    NO_UNVISITED_REGIONS(HttpStatus.NOT_FOUND, "ROULETTE4001", "방문하지 않은 지역이 없습니다."),
+    REGION_NOT_FOUND(HttpStatus.NOT_FOUND, "ROULETTE4002", "해당 지역을 찾을 수 없습니다."),
+    ROULETTE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROULETTE4003", "룰렛 내역을 찾을 수 없습니다.");
 
 
     private final HttpStatus httpStatus;

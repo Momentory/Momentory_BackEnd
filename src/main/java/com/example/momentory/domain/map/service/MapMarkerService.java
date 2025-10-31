@@ -6,11 +6,15 @@ import com.example.momentory.domain.map.entity.UserRegionColor;
 import com.example.momentory.domain.map.repository.MapMarkerRepository;
 import com.example.momentory.domain.map.repository.RegionRepository;
 import com.example.momentory.domain.photo.entity.Photo;
+import com.example.momentory.domain.roulette.service.RouletteService;
 import com.example.momentory.domain.stamp.repository.StampRepository;
 import com.example.momentory.domain.stamp.service.StampService;
 import com.example.momentory.domain.user.entity.User;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +31,9 @@ public class MapMarkerService {
     private final StampService stampService;
     private final StampRepository stampRepository;
     private final UserRegionColorService userRegionColorService;
+    
+    @Lazy
+    private final RouletteService rouletteService;
 
 
     /**
@@ -39,22 +46,26 @@ public class MapMarkerService {
 
     /**
      * 사진 업로드 시 마커 생성 및 지역 스탬프 발급
-     * @return 새로 발급된 경우 지역명 반환, 아니면 null
+     * @return StampResult (새로 발급된 경우 지역명과 룰렛 인증 여부)
      */
     @Transactional
-    public String createMarkerAndStampWithInfo(Photo photo, User user, String color) {
+    public StampResult createMarkerAndStampWithInfo(Photo photo, User user, String color) {
         // 프론트에서 받은 address를 사용하여 지역명 추출
-        if (photo.getAddress() == null || photo.getAddress().isEmpty()) return null;
+        if (photo.getAddress() == null || photo.getAddress().isEmpty()) {
+            return new StampResult(null, false);
+        }
         
         String regionName = extractCityName(photo.getAddress());
-        if (regionName == null) return null;
+        if (regionName == null) {
+            return new StampResult(null, false);
+        }
 
         // Region 데이터베이스에서 해당 지역 조회
         Optional<Region> regionOpt = regionRepository.findByName(regionName);
         if (regionOpt.isEmpty()) {
             // 해당 지역이 데이터베이스에 없는 경우 로그만 남기고 스탬프 발급하지 않음
             log.warn("[지역 스탬프] 데이터베이스에 없는 지역: '{}' (원본 주소: '{}')", regionName, photo.getAddress());
-            return null;
+            return new StampResult(null, false);
         }
         
         Region region = regionOpt.get();
@@ -73,7 +84,24 @@ public class MapMarkerService {
         mapMarkerRepository.save(marker);
 
         boolean granted = stampService.grantRegionalStamp(user, regionName);
-        return granted ? regionName : null;
+        boolean rouletteRewardGranted = false;
+        
+        // 지역 스탬프가 새로 발급된 경우, 룰렛 인증 체크 및 보상
+        if (granted) {
+            rouletteRewardGranted = rouletteService.checkAndCompleteRouletteReward(user, regionName);
+        }
+        
+        return new StampResult(granted ? regionName : null, rouletteRewardGranted);
+    }
+    
+    /**
+     * 스탬프 발급 결과
+     */
+    @Getter
+    @AllArgsConstructor
+    public static class StampResult {
+        private final String regionName;  // 새로 발급된 지역명 (없으면 null)
+        private final boolean rouletteRewardGranted;  // 룰렛 인증 성공 여부
     }
 
 

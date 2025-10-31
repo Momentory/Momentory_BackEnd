@@ -52,8 +52,11 @@ public class PhotoService {
         Photo savedPhoto = photoRepository.save(photo);
 
         // 지역 스탬프 (프론트에서 받은 address와 color 사용)
-        String regionalStampName = mapMarkerService.createMarkerAndStampWithInfo(savedPhoto, user, photoRequest.getColor());
+        MapMarkerService.StampResult stampResult = mapMarkerService.createMarkerAndStampWithInfo(savedPhoto, user, photoRequest.getColor());
+        String regionalStampName = stampResult.getRegionName();
         boolean regionalStampGranted = (regionalStampName != null);
+        boolean rouletteRewardGranted = stampResult.isRouletteRewardGranted();
+        Integer rouletteRewardPoint = rouletteRewardGranted ? 500 : null;
 
         // 근처 문화시설 검색 (TourAPI)
         boolean hasNearbyCulturalSpots = false;
@@ -87,6 +90,8 @@ public class PhotoService {
                 .regionalStampName(regionalStampName)
                 .hasNearbyCulturalSpots(hasNearbyCulturalSpots)
                 .nearbyCulturalSpotName(nearbyCulturalSpotName)
+                .rouletteRewardGranted(rouletteRewardGranted)
+                .rouletteRewardPoint(rouletteRewardPoint)
                 .build();
     }
 

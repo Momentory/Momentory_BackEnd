@@ -113,6 +113,25 @@ public class CharacterService {
         return currentCharacter;
     }
 
+    /**
+     * 현재 캐릭터 조회 (레벨 상세 정보 포함)
+     */
+    @Transactional
+    public CharacterDto.CurrentCharacterResponse getCurrentCharacterWithLevelInfo() {
+        User user = userService.getCurrentUser();
+        Character currentCharacter = characterRepository.findCurrentCharacterByOwner(user)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.CURRENT_CHARACTER_NOT_FOUND));
+
+        // 레벨 갱신
+        updateCharacterLevel(currentCharacter, user);
+
+        // 누적 포인트 계산
+        int totalPoints = pointHistoryRepository.calculateTotalPointsByUser(user);
+
+        // Converter를 통해 레벨 상세 정보 포함하여 반환
+        return characterConverter.toCurrentCharacterResponse(currentCharacter, totalPoints);
+    }
+
     @Transactional
     public List<CharacterDto.ListResponse> getAllCharacters() {
         User user = userService.getCurrentUser();

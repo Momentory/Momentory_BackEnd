@@ -36,9 +36,9 @@ public class CharacterController {
     }
 
     @GetMapping("/current")
-    @Operation(summary = "현재 캐릭터 조회", description = "현재 선택된 캐릭터와 착용 아이템을 조회합니다.")
+    @Operation(summary = "현재 캐릭터 조회", description = "현재 선택된 캐릭터와 착용 아이템, 레벨 상세 정보를 조회합니다.")
     public ApiResponse<CharacterDto.CurrentCharacterResponse> getCurrentCharacter() {
-        return ApiResponse.onSuccess(characterConverter.toCurrentCharacterResponse(characterService.getCurrentCharacter()));
+        return ApiResponse.onSuccess(characterService.getCurrentCharacterWithLevelInfo());
     }
 
     @GetMapping

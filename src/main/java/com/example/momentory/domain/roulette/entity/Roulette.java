@@ -27,5 +27,12 @@ public class Roulette extends BaseEntity {
     private String reward;
     private int usedPoint;
     private int earnedPoint;
+
+    /**
+     * 룰렛 인증 완료 시 earnedPoint 업데이트
+     */
+    public void completeRouletteReward(int rewardPoint) {
+        this.earnedPoint = rewardPoint;
+    }
 }
 

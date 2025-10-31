@@ -76,8 +76,8 @@ public class HomeService {
     }
 
     public CharacterDto.CurrentCharacterResponse getMyCharacterStatus() {
-        Character character = characterService.getCurrentCharacter();
-        return characterConverter.toCurrentCharacterResponse(character);
+        // CharacterService의 새로운 메서드를 사용하여 레벨 상세 정보 포함
+        return characterService.getCurrentCharacterWithLevelInfo();
     }
 
     public List<HomeDto.EventSummary> getUpcomingEvents() {

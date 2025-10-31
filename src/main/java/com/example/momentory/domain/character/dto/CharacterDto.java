@@ -57,7 +57,19 @@ public class CharacterDto {
         private Long characterId;
         private CharacterType characterType;
         private int level;
+        private LevelInfo levelInfo;  // 레벨 상세 정보
         private EquippedItems equipped;
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LevelInfo {
+        private int currentPoints;        // 현재 누적 포인트
+        private int nextLevelPoints;      // 다음 레벨까지 필요한 총 포인트
+        private int remainingPoints;      // 다음 레벨까지 남은 포인트
+        private int pointsForNextLevel;   // 현재 레벨 → 다음 레벨 (예: 1→2는 100p)
     }
 
     @Getter

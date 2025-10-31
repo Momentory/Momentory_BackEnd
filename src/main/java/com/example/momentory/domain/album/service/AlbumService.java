@@ -8,12 +8,16 @@ import com.example.momentory.domain.album.repository.AlbumImageRepository;
 import com.example.momentory.domain.album.repository.AlbumRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.service.UserService;
+import com.example.momentory.global.code.status.ErrorStatus;
+import com.example.momentory.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +28,9 @@ public class AlbumService {
     private final AlbumRepository albumRepository;
     private final AlbumImageRepository albumImageRepository;
     private final UserService userService;
+
+    @Value("${app.frontend.redirect-url}")
+    private String frontendRedirectUrl;
 
     @Transactional
     public AlbumResponseDto.AlbumBasicInfo createAlbum(AlbumRequestDto.CreateAlbum request) {
@@ -62,6 +69,7 @@ public class AlbumService {
         User me = userService.getCurrentUser();
         List<Album> albums = albumRepository.findAllByUserOrderByCreatedAtDesc(me);
         return albums.stream().map(a -> {
+            // displayOrder 순서대로 정렬된 이미지 리스트에서 첫 번째 이미지를 썸네일로 사용
             List<AlbumImage> sortedImages = albumImageRepository.findAllByAlbumOrderByDisplayOrderAsc(a);
             String thumbnail = sortedImages.isEmpty() ? null : sortedImages.get(0).getImageUrl();
             return AlbumResponseDto.AlbumListItem.builder()
@@ -69,6 +77,7 @@ public class AlbumService {
                     .title(a.getTitle())
                     .imageCount(a.getImages().size())
                     .thumbnailUrl(thumbnail)
+                    .isShared(a.isShared())
                     .createdAt(a.getCreatedAt())
                     .build();
         }).collect(Collectors.toList());
@@ -76,7 +85,7 @@ public class AlbumService {
 
     public AlbumResponseDto.AlbumDetail getAlbumDetail(Long albumId) {
         Album album = albumRepository.findById(albumId)
-                .orElseThrow(() -> new IllegalArgumentException("Album not found: " + albumId));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.ALBUM_NOT_FOUND));
 
         List<AlbumImage> images = albumImageRepository.findAllByAlbumOrderByDisplayOrderAsc(album);
 
@@ -101,7 +110,7 @@ public class AlbumService {
     @Transactional
     public AlbumResponseDto.AlbumBasicInfo updateAlbum(Long albumId, AlbumRequestDto.UpdateAlbum request) {
         Album album = albumRepository.findById(albumId)
-                .orElseThrow(() -> new IllegalArgumentException("Album not found: " + albumId));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.ALBUM_NOT_FOUND));
         
         // 제목 수정
         if (request.getTitle() != null) {
@@ -133,6 +142,67 @@ public class AlbumService {
                 .id(album.getId())
                 .title(album.getTitle())
                 .build();
+    }
+
+    @Transactional
+    public AlbumResponseDto.ShareUrlResponse createShareLink(Long albumId) {
+        User me = userService.getCurrentUser();
+        
+        Album album = albumRepository.findById(albumId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.ALBUM_NOT_FOUND));
+        
+        // 권한 확인: 앨범 소유자가 아니면 예외 발생
+        if (!album.getUser().getUserId().equals(me.getUserId())) {
+            throw new GeneralException(ErrorStatus.ALBUM_ACCESS_DENIED);
+        }
+        
+        // UUID 생성 및 공유 활성화
+        String shareUuid = UUID.randomUUID().toString();
+        album.enableShare(shareUuid);
+        albumRepository.save(album);
+        
+        // 프론트 주소로 공유 링크 생성
+        String shareUrl = frontendRedirectUrl + "/share/" + shareUuid;
+        
+        return AlbumResponseDto.ShareUrlResponse.builder()
+                .shareUrl(shareUrl)
+                .build();
+    }
+
+    public AlbumResponseDto.SharedAlbumResponse getSharedAlbum(String shareUuid) {
+        Album album = albumRepository.findByShareUuidAndIsSharedTrue(shareUuid)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.SHARED_ALBUM_NOT_FOUND));
+        
+        List<AlbumImage> images = albumImageRepository.findAllByAlbumOrderByDisplayOrderAsc(album);
+        
+        List<AlbumResponseDto.SharedImageItem> imageItems = images.stream().map(img ->
+                AlbumResponseDto.SharedImageItem.builder()
+                        .imageUrl(img.getImageUrl())
+                        .index(img.getDisplayOrder())
+                        .build()
+        ).collect(Collectors.toList());
+        
+        return AlbumResponseDto.SharedAlbumResponse.builder()
+                .title(album.getTitle())
+                .images(imageItems)
+                .build();
+    }
+
+    @Transactional
+    public void unshareAlbum(Long albumId) {
+        User me = userService.getCurrentUser();
+        
+        Album album = albumRepository.findById(albumId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.ALBUM_NOT_FOUND));
+        
+        // 권한 확인: 앨범 소유자가 아니면 예외 발생
+        if (!album.getUser().getUserId().equals(me.getUserId())) {
+            throw new GeneralException(ErrorStatus.ALBUM_ACCESS_DENIED);
+        }
+        
+        // 공유 해제
+        album.disableShare();
+        albumRepository.save(album);
     }
 }
 

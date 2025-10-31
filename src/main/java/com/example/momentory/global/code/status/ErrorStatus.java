@@ -101,7 +101,12 @@ public enum ErrorStatus implements BaseErrorCode {
 
     // 옷장 관련 에러
     WARDROBE_NOT_FOUND(HttpStatus.NOT_FOUND, "WARDROBE4001", "옷장 슬롯을 찾을 수 없습니다."),
-    WARDROBE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "WARDROBE4002", "해당 옷장에 접근할 권한이 없습니다.");
+    WARDROBE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "WARDROBE4002", "해당 옷장에 접근할 권한이 없습니다."),
+
+    // 앨범 관련 에러
+    ALBUM_NOT_FOUND(HttpStatus.NOT_FOUND, "ALBUM4001", "앨범을 찾을 수 없습니다."),
+    ALBUM_ACCESS_DENIED(HttpStatus.FORBIDDEN, "ALBUM4002", "해당 앨범에 접근할 권한이 없습니다."),
+    SHARED_ALBUM_NOT_FOUND(HttpStatus.NOT_FOUND, "ALBUM4003", "공유된 앨범을 찾을 수 없거나 공유가 해제되었습니다.");
 
 
     private final HttpStatus httpStatus;

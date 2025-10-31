@@ -19,6 +19,7 @@ public class AlbumResponseDto {
         private String title;
         private int imageCount;
         private String thumbnailUrl; // 첫 이미지 URL (없으면 null)
+        private boolean isShared; // 공유 상태
         private LocalDateTime createdAt;
     }
 
@@ -52,6 +53,32 @@ public class AlbumResponseDto {
     public static class AlbumBasicInfo {
         private Long id;
         private String title;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class SharedAlbumResponse {
+        private String title;
+        private List<SharedImageItem> images;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class SharedImageItem {
+        private String imageUrl;
+        private Integer index;
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ShareUrlResponse {
+        private String shareUrl;
     }
 }
 

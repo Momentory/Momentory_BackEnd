@@ -17,9 +17,12 @@ import com.example.momentory.global.exception.GeneralException;
 import com.example.momentory.global.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -147,6 +150,48 @@ public class PhotoService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
 
         return PhotoConverter.toPhotoResponse(photo);
+    }
+
+    // 내 사진 목록 조회 (커서 페이지네이션)
+    public PhotoReseponseDto.MyPhotosCursorResponse getMyPhotos(PhotoRequestDto.MyPhotosCursorRequest request) {
+        Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new GeneralException(ErrorStatus._UNAUTHORIZED);
+        }
+
+        // 요청 크기 검증 및 설정 (기본값 20, 최대 50)
+        int size = (request.getSize() != null && request.getSize() > 0) 
+                ? Math.min(request.getSize(), 50) 
+                : 20;
+        
+        LocalDateTime cursor = request.getCursor();
+        
+        // size + 1개를 조회하여 다음 페이지 존재 여부 확인
+        Pageable pageable = PageRequest.of(0, size + 1);
+        List<Photo> photos = photoRepository.findByUser_UserIdAndCreatedAtBeforeOrderByCreatedAtDesc(
+                userId, cursor, pageable);
+        
+        // hasNext 확인 (size + 1개 조회했는데 실제로 size + 1개가 있으면 다음 페이지 존재)
+        boolean hasNext = photos.size() > size;
+        
+        // 실제 반환할 데이터는 size개만
+        List<Photo> resultPhotos = hasNext ? photos.subList(0, size) : photos;
+        
+        // 다음 커서 계산 (마지막 항목의 createdAt, hasNext가 true일 때만 설정)
+        LocalDateTime nextCursor = null;
+        if (hasNext && !resultPhotos.isEmpty()) {
+            nextCursor = resultPhotos.get(resultPhotos.size() - 1).getCreatedAt();
+        }
+        
+        List<PhotoReseponseDto.PhotoResponse> photoResponses = resultPhotos.stream()
+                .map(PhotoConverter::toPhotoResponse)
+                .toList();
+        
+        return PhotoReseponseDto.MyPhotosCursorResponse.builder()
+                .photos(photoResponses)
+                .nextCursor(nextCursor)
+                .hasNext(hasNext)
+                .build();
     }
 
     // 포토 공개 여부 변경

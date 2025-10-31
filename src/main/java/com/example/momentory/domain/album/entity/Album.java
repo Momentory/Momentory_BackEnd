@@ -32,6 +32,13 @@ public class Album extends BaseEntity {
     @Builder.Default
     private List<AlbumImage> images = new ArrayList<>();
 
+    @Column(name = "share_uuid", unique = true)
+    private String shareUuid;  // 공유용 UUID
+
+    @Column(name = "is_shared")
+    @Builder.Default
+    private boolean isShared = false;  // 공유 상태 on/off
+
     public void update(String title) {
         this.title = title;
     }
@@ -39,5 +46,15 @@ public class Album extends BaseEntity {
     public void addImages(List<AlbumImage> albumImages) {
         this.images.addAll(albumImages);
         albumImages.forEach(img -> img.setAlbum(this));
+    }
+
+    public void enableShare(String shareUuid) {
+        this.shareUuid = shareUuid;
+        this.isShared = true;
+    }
+
+    public void disableShare() {
+        this.shareUuid = null;
+        this.isShared = false;
     }
 }

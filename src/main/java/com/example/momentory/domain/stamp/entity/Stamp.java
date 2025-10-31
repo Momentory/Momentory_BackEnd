@@ -1,4 +1,4 @@
-package com.example.momentory.domain.photo.entity;
+package com.example.momentory.domain.stamp.entity;
 
 import com.example.momentory.global.common.BaseEntity;
 import jakarta.persistence.*;

@@ -9,12 +9,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 public class PhotoRequestDto {
 
     @Getter
     @Setter
     @AllArgsConstructor
-    public static class PhotoUpload{
+    public static class PhotoUpload {
         @NotNull
         private String imageName;
         @NotNull
@@ -30,7 +32,7 @@ public class PhotoRequestDto {
     @Getter
     @Setter
     @AllArgsConstructor
-    public static class PhotoUpdate{
+    public static class PhotoUpdate {
         private String address;
         private String memo;
         private Boolean visibility;
@@ -40,7 +42,7 @@ public class PhotoRequestDto {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class VisibilityChange{
+    public static class VisibilityChange {
         @NotNull
         private Boolean visibility;
     }
@@ -49,10 +51,20 @@ public class PhotoRequestDto {
     @Setter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class LocationToAddressRequest{
+    public static class LocationToAddressRequest {
         @NotNull
         private Double latitude;
         @NotNull
         private Double longitude;
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class MyPhotosCursorRequest {
+        private LocalDateTime cursor;  // 마지막 사진의 createdAt
+        private Integer size = 20;      // 기본값 20개
+    }
+
 }

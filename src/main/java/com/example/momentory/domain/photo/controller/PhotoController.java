@@ -53,10 +53,11 @@ public class PhotoController {
     }
 
     @PutMapping("/{photoId}/nearby")
-    @Operation(summary = "근처 관광지 추천", description = "사진의 위치를 기반으로 근처 관광지를 추천합니다.")
+    @Operation(summary = "근처 관광지 추천", description = "사진의 위치를 기반으로 근처 관광지를 추천합니다. limit 파라미터로 개수 지정 (기본 4개).")
     public ApiResponse<PhotoReseponseDto.NearbySpotsResponse> getNearbySpots(
-            @PathVariable Long photoId) {
-        return ApiResponse.onSuccess(photoService.getNearbySpots(photoId));
+            @PathVariable Long photoId,
+            @RequestParam(name = "limit", required = false, defaultValue = "4") int limit) {
+        return ApiResponse.onSuccess(photoService.getNearbySpots(photoId, limit));
     }
 
     @PostMapping("/location-to-address")

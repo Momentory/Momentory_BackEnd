@@ -2,14 +2,16 @@ package com.example.momentory.domain.community.service;
 
 import com.example.momentory.domain.community.entity.Like;
 import com.example.momentory.domain.community.entity.Post;
-import com.example.momentory.domain.community.entity.Comment; // 🚨 Comment 엔티티 추가
+import com.example.momentory.domain.community.entity.Comment;
+import com.example.momentory.domain.community.entity.Scrap; // 🚨 Scrap 엔티티 추가
 import com.example.momentory.domain.community.repository.LikeRepository;
 import com.example.momentory.domain.community.repository.PostRepository;
-import com.example.momentory.domain.community.repository.CommentRepository; // 🚨 CommentRepository 추가
-import com.example.momentory.domain.community.dto.CommentRequestDto; // 🚨 CommentRequestDto 추가
-import com.example.momentory.domain.community.dto.CommentResponseDto; // 🚨 CommentResponseDto 추가
-import com.example.momentory.domain.user.entity.User; // 🚨 User 엔티티 추가
-import com.example.momentory.domain.user.repository.UserRepository; // 🚨 UserRepository 추가
+import com.example.momentory.domain.community.repository.CommentRepository;
+import com.example.momentory.domain.community.repository.ScrapRepository; // 🚨 ScrapRepository 추가
+import com.example.momentory.domain.community.dto.CommentRequestDto;
+import com.example.momentory.domain.community.dto.CommentResponseDto;
+import com.example.momentory.domain.user.entity.User;
+import com.example.momentory.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import java.util.List;
-import java.util.stream.Collectors; // List 처리를 위해 추가
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,9 +29,10 @@ public class CommunityService {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
 
-    // --- 🚨 댓글 CRUD를 위한 의존성 주입 ---
+    // --- 🚨 댓글 CRUD 및 스크랩을 위한 의존성 주입 ---
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
+    private final ScrapRepository scrapRepository; // 🚨 스크랩 리포지토리 추가
 
 
     // --- 기존 좋아요 토글 로직 유지 ---
@@ -60,7 +63,7 @@ public class CommunityService {
 
 
     // ----------------------------------------------------------------------
-    // 🚨🚨 댓글 (Comment) CRUD 로직 추가 🚨🚨
+    // 🚨🚨 댓글 (Comment) CRUD 로직 유지 🚨🚨
     // ----------------------------------------------------------------------
 
     /**
@@ -68,12 +71,9 @@ public class CommunityService {
      */
     @Transactional
     public Comment createComment(Long userId, Long postId, CommentRequestDto.CreateCommentDto request) {
-
-        // 1. Post 엔티티 조회 (게시글 존재 확인)
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("ID " + postId + "에 해당하는 게시글을 찾을 수 없습니다."));
 
-        // 2. User 엔티티 조회 (작성자 확인)
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("ID " + userId + "에 해당하는 사용자를 찾을 수 없습니다."));
 
@@ -94,15 +94,14 @@ public class CommunityService {
 
         List<Comment> comments = commentRepository.findAllByPostPostId(postId);
 
-        // 댓글 리스트를 DTO 리스트로 변환
         return comments.stream()
                 .map(comment -> CommentResponseDto.CommentDto.builder()
-                        .commentId(comment.getCommentId()) // Comment 엔티티의 ID 필드 이름이 commentId라고 가정
+                        .commentId(comment.getCommentId())
                         .userId(comment.getUser().getId())
-                        .userNickname(comment.getUser().getNickname()) // User 엔티티의 닉네임 필드를 가져와야 함
+                        .userNickname(comment.getUser().getNickname())
                         .content(comment.getContent())
                         .createdAt(comment.getCreatedAt())
-                        .updatedAt(comment.getUpdatedAt()) // BaseEntity의 ModifiedAt 필드를 사용한다고 가정
+                        .updatedAt(comment.getUpdatedAt())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -115,13 +114,11 @@ public class CommunityService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new EntityNotFoundException("ID " + commentId + "에 해당하는 댓글을 찾을 수 없습니다."));
 
-        // 🚨 작성자 검증: 요청한 사용자가 댓글 작성자인지 확인
         if (!comment.getUser().getId().equals(userId)) {
-            // throw new CustomException(ErrorCode.FORBIDDEN_ACCESS, "댓글 수정 권한이 없습니다."); // 프로젝트의 권한 예외를 사용하세요.
-            throw new RuntimeException("댓글 수정 권한이 없습니다."); // 임시 RuntimeException 사용
+            throw new RuntimeException("댓글 수정 권한이 없습니다.");
         }
 
-        comment.updateContent(request.getContent()); // Comment 엔티티의 수정 메서드 호출
+        comment.updateContent(request.getContent());
         return comment;
     }
 
@@ -133,12 +130,66 @@ public class CommunityService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new EntityNotFoundException("ID " + commentId + "에 해당하는 댓글을 찾을 수 없습니다."));
 
-        // 🚨 작성자 검증: 요청한 사용자가 댓글 작성자인지 확인
         if (!comment.getUser().getId().equals(userId)) {
-            // throw new CustomException(ErrorCode.FORBIDDEN_ACCESS, "댓글 삭제 권한이 없습니다."); // 프로젝트의 권한 예외를 사용하세요.
-            throw new RuntimeException("댓글 삭제 권한이 없습니다."); // 임시 RuntimeException 사용
+            throw new RuntimeException("댓글 삭제 권한이 없습니다.");
         }
 
         commentRepository.delete(comment);
+    }
+
+    // ----------------------------------------------------------------------
+    // 🚨🚨 스크랩 (Scrap) 기능 로직 추가 🚨🚨
+    // ----------------------------------------------------------------------
+
+    /**
+     * 5. 스크랩 토글 (설정/취소)
+     */
+    @Transactional
+    public boolean toggleScrap(Long userId, Long postId) {
+
+        // 1. Post 엔티티 조회
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("ID " + postId + "에 해당하는 게시글을 찾을 수 없습니다."));
+
+        // 🚨 2. User 엔티티 조회 (Scrap 엔티티 생성 및 조회를 위해 필수)
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("ID " + userId + "에 해당하는 사용자를 찾을 수 없습니다."));
+
+        // 3. 기존 스크랩 레코드 존재 확인 (findByUserAndPost 사용)
+        Optional<Scrap> existingScrap = scrapRepository.findByUserAndPost(user, post);
+
+        if (existingScrap.isPresent()) {
+            // 스크랩 취소 (DELETE)
+            scrapRepository.delete(existingScrap.get());
+            return false;
+        } else {
+            // 스크랩 생성 (INSERT)
+            Scrap newScrap = Scrap.builder()
+                    .user(user) // User 엔티티 주입
+                    .post(post)
+                    .build();
+
+            scrapRepository.save(newScrap);
+            return true;
+        }
+    }
+
+    /**
+     * 6. 사용자별 스크랩 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<Post> getUserScrapList(Long userId) {
+
+        // 1. User 엔티티 조회
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("ID " + userId + "에 해당하는 사용자를 찾을 수 없습니다."));
+
+        // 2. 해당 사용자의 모든 Scrap 엔티티 조회 (findAllByUser 사용)
+        List<Scrap> scrapList = scrapRepository.findAllByUser(user);
+
+        // 3. Post 엔티티만 추출하여 반환
+        return scrapList.stream()
+                .map(Scrap::getPost)
+                .collect(Collectors.toList());
     }
 }

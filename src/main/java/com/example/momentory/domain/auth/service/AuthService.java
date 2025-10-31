@@ -13,6 +13,9 @@ import com.example.momentory.domain.character.entity.CharacterType;
 import com.example.momentory.domain.character.service.CharacterService;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.entity.UserProfile;
+import com.example.momentory.domain.point.entity.PointHistory;
+import com.example.momentory.domain.point.entity.PointActionType;
+import com.example.momentory.domain.point.repository.PointHistoryRepository;
 import com.example.momentory.domain.user.repository.UserProfileRepository;
 import com.example.momentory.domain.user.repository.UserRepository;
 import com.example.momentory.domain.user.service.UserService;
@@ -42,8 +45,11 @@ public class AuthService {
     private final UserTermsRepository userTermsRepository;
     private final MailService mailService;
     private final CharacterService characterService;
+    private final PointHistoryRepository pointHistoryRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    private static final int SIGNUP_BONUS_POINTS = 500;
 
     @Transactional
     public AuthResponseDTO.SignResponseDTO signUp(AuthConverter.UserRegistrationData data, boolean agreeTerms, CharacterType characterType) {
@@ -67,7 +73,18 @@ public class AuthService {
             User savedUser = userRepository.save(data.user());
             UserProfile userProfile = data.userProfile();
             userProfile.setUser(savedUser);
+            
+            // 가입 축하 포인트 지급
+            userProfile.plusPoint(SIGNUP_BONUS_POINTS);
             userProfileRepository.save(userProfile);
+            
+            // 가입 포인트 PointHistory에 기록 (일관성과 추적성을 위해)
+            PointHistory signupPointHistory = PointHistory.builder()
+                    .user(savedUser)
+                    .actionType(PointActionType.SIGNUP)
+                    .amount(SIGNUP_BONUS_POINTS)
+                    .build();
+            pointHistoryRepository.save(signupPointHistory);
 
             // UserTerms 저장 (모든 약관 타입에 대해 동의 처리)
             for (TermsType termsType : TermsType.values()) {

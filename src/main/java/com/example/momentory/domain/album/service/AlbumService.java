@@ -34,11 +34,11 @@ public class AlbumService {
 
     @Transactional
     public AlbumResponseDto.AlbumBasicInfo createAlbum(AlbumRequestDto.CreateAlbum request) {
-        User me = userService.getCurrentUser();
+        User user = userService.getCurrentUser();
 
         Album album = Album.builder()
                 .title(request.getTitle())
-                .user(me)
+                .user(user)
                 .build();
 
         List<AlbumImage> albumImages = new ArrayList<>();
@@ -66,8 +66,8 @@ public class AlbumService {
     }
 
     public List<AlbumResponseDto.AlbumListItem> getMyAlbums() {
-        User me = userService.getCurrentUser();
-        List<Album> albums = albumRepository.findAllByUserOrderByCreatedAtDesc(me);
+        User user = userService.getCurrentUser();
+        List<Album> albums = albumRepository.findAllByUserOrderByCreatedAtDesc(user);
         return albums.stream().map(a -> {
             // displayOrder 순서대로 정렬된 이미지 리스트에서 첫 번째 이미지를 썸네일로 사용
             List<AlbumImage> sortedImages = albumImageRepository.findAllByAlbumOrderByDisplayOrderAsc(a);
@@ -111,6 +111,12 @@ public class AlbumService {
     public AlbumResponseDto.AlbumBasicInfo updateAlbum(Long albumId, AlbumRequestDto.UpdateAlbum request) {
         Album album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.ALBUM_NOT_FOUND));
+
+        User user  = userService.getCurrentUser();
+        // 권한 확인: 앨범 소유자가 아니면 예외 발생
+        if (!album.getUser().getUserId().equals(user.getUserId())) {
+            throw new GeneralException(ErrorStatus.ALBUM_ACCESS_DENIED);
+        }
         
         // 제목 수정
         if (request.getTitle() != null) {
@@ -146,13 +152,13 @@ public class AlbumService {
 
     @Transactional
     public AlbumResponseDto.ShareUrlResponse createShareLink(Long albumId) {
-        User me = userService.getCurrentUser();
+        User user = userService.getCurrentUser();
         
         Album album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.ALBUM_NOT_FOUND));
         
         // 권한 확인: 앨범 소유자가 아니면 예외 발생
-        if (!album.getUser().getUserId().equals(me.getUserId())) {
+        if (!album.getUser().getUserId().equals(user.getUserId())) {
             throw new GeneralException(ErrorStatus.ALBUM_ACCESS_DENIED);
         }
         
@@ -190,13 +196,13 @@ public class AlbumService {
 
     @Transactional
     public void unshareAlbum(Long albumId) {
-        User me = userService.getCurrentUser();
+        User user = userService.getCurrentUser();
         
         Album album = albumRepository.findById(albumId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.ALBUM_NOT_FOUND));
         
         // 권한 확인: 앨범 소유자가 아니면 예외 발생
-        if (!album.getUser().getUserId().equals(me.getUserId())) {
+        if (!album.getUser().getUserId().equals(user.getUserId())) {
             throw new GeneralException(ErrorStatus.ALBUM_ACCESS_DENIED);
         }
         

@@ -5,7 +5,7 @@ import com.example.momentory.domain.stamp.entity.Stamp;
 import com.example.momentory.domain.stamp.entity.StampType;
 import com.example.momentory.domain.stamp.repository.StampRepository;
 import com.example.momentory.domain.user.entity.User;
-import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
@@ -22,10 +22,10 @@ import com.example.momentory.domain.stamp.dto.StampResponseDto;
 public class StampService {
 
     private final StampRepository stampRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     /**
-     * ✅ 지역 스탬프 발급
+     * 지역 스탬프 발급
      */
     @Transactional
     public boolean grantRegionalStamp(User user, String regionName) {
@@ -44,12 +44,11 @@ public class StampService {
     }
 
     /**
-     * ✅ 문화 스탬프 발급 (CulturalStampData 기반)
+     * 문화 스탬프 발급 (CulturalStampData 기반)
      */
     @Transactional
-    public void grantCulturalStamp(Long userId, String spotName) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+    public void grantCulturalStamp(String spotName) {
+        User user = userService.getCurrentUser();
 
         // 이미 해당 문화 스탬프 보유 시 중복 방지
         if (stampRepository.existsByUserAndSpotName(user, spotName)) {
@@ -74,7 +73,8 @@ public class StampService {
     }
 
     @Transactional(readOnly = true)
-    public StampResponseDto.MyStampsGrouped getMyStampsGrouped(User user) {
+    public StampResponseDto.MyStampsGrouped getMyStampsGrouped() {
+        User user = userService.getCurrentUser();
         List<Stamp> all = stampRepository.findByUser(user);
 
         List<StampResponseDto.StampInfo> regional = all.stream()
@@ -94,7 +94,8 @@ public class StampService {
     }
 
     @Transactional(readOnly = true)
-    public List<StampResponseDto.StampInfo> getMyStampsByType(User user, StampType type) {
+    public List<StampResponseDto.StampInfo> getMyStampsByType(StampType type) {
+        User user = userService.getCurrentUser();
         return stampRepository.findByUserAndType(user, type).stream()
                 .map(this::toStampInfo)
                 .collect(Collectors.toList());
@@ -108,5 +109,14 @@ public class StampService {
                 .type(s.getType())
                 .issuedAt(s.getIssuedAt())
                 .build();
+    }
+
+    public List<StampResponseDto.StampInfo> getRecentStampsByUser(){
+        User user = userService.getCurrentUser();
+
+        return stampRepository.findTop3ByUserOrderByCreatedAtDesc(user).stream()
+                .map(this::toStampInfo)
+                .collect(Collectors.toList());
+
     }
 }

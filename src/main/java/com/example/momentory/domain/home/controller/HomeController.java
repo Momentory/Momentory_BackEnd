@@ -3,10 +3,7 @@ package com.example.momentory.domain.home.controller;
 import com.example.momentory.domain.character.dto.CharacterDto;
 import com.example.momentory.domain.home.dto.HomeDto;
 import com.example.momentory.domain.home.service.HomeService;
-import com.example.momentory.domain.user.entity.User;
-import com.example.momentory.domain.user.repository.UserRepository;
 import com.example.momentory.global.ApiResponse;
-import com.example.momentory.global.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +20,6 @@ import java.util.List;
 public class HomeController {
 
     private final HomeService homeService;
-    private final UserRepository userRepository;
 
     @GetMapping("/travel-top3")
     @Operation(summary = "오늘의 여행지 Top 3", description = "추천 여행지 상위 3개를 반환합니다.")
@@ -40,9 +36,7 @@ public class HomeController {
     @GetMapping("/character-status")
     @Operation(summary = "나의 캐릭터 현황", description = "현재 선택된 캐릭터와 착용 아이템 현황을 반환합니다.")
     public ApiResponse<CharacterDto.CurrentCharacterResponse> getMyCharacterStatus() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        User user = userRepository.findById(userId).orElseThrow();
-        return ApiResponse.onSuccess(homeService.getMyCharacterStatus(user));
+        return ApiResponse.onSuccess(homeService.getMyCharacterStatus());
     }
 
     @GetMapping("/events")

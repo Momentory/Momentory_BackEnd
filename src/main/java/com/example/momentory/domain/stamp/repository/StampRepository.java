@@ -19,4 +19,6 @@ public interface StampRepository extends JpaRepository<Stamp, Long> {
 
     List<Stamp> findByUser(User user);
     List<Stamp> findByUserAndType(User user, StampType type);
+    List<Stamp> findTop3ByUserOrderByCreatedAtDesc(User user);
+
 }

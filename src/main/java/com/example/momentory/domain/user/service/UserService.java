@@ -23,15 +23,14 @@ public class UserService {
 
     public User getCurrentUser() {
         Long userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) throw new GeneralException(ErrorStatus._UNAUTHORIZED);
         return userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
     }
 
     // 내 정보 조회
     public UserResponseDto.MyInfoDto getMyInfo() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+        User user = getCurrentUser();
 
         UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
 
@@ -74,9 +73,7 @@ public class UserService {
     // 프로필 수정
     @Transactional
     public UserResponseDto.MyInfoDto updateProfile(UserRequestDto.UpdateProfileDto request) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+        User user = getCurrentUser();
 
         UserProfile userProfile = userProfileRepository.findByUser(user)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_PROFILE_NOT_FOUND));
@@ -114,9 +111,7 @@ public class UserService {
     // 회원 탈퇴 (soft delete)
     @Transactional
     public String deleteUser() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+        User user = getCurrentUser();
 
         // 이미 탈퇴한 사용자인지 확인
         if (!user.isActive()) {

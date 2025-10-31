@@ -11,10 +11,9 @@ import com.example.momentory.domain.photo.entity.Visibility;
 import com.example.momentory.domain.photo.repository.PhotoRepository;
 import com.example.momentory.domain.stamp.repository.StampRepository;
 import com.example.momentory.domain.user.entity.User;
-import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
-import com.example.momentory.global.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.data.domain.PageRequest;
@@ -32,7 +31,7 @@ import java.util.Optional;
 @Log4j2
 public class PhotoService {
     private final PhotoRepository photoRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final MapMarkerService mapMarkerService;
     private final CulturalSpotService culturalSpotService;
     private final KakaoMapService kakaoMapService;
@@ -41,11 +40,7 @@ public class PhotoService {
     // 포토 업로드
     @Transactional
     public PhotoReseponseDto.PhotoUploadResponse uploadPhoto(PhotoRequestDto.PhotoUpload photoRequest) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        if (userId == null) throw new GeneralException(ErrorStatus._UNAUTHORIZED);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+        User user = userService.getCurrentUser();
 
         Photo photo = PhotoConverter.uploadToPhoto(photoRequest, user);
         Photo savedPhoto = photoRepository.save(photo);
@@ -94,16 +89,13 @@ public class PhotoService {
     // 포토 수정
     @Transactional
     public PhotoReseponseDto.PhotoResponse updatePhoto(Long photoId, PhotoRequestDto.PhotoUpdate photoRequest) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        if (userId == null) {
-            throw new GeneralException(ErrorStatus._UNAUTHORIZED);
-        }
+        User user = userService.getCurrentUser();
 
         Photo photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
 
         // 본인의 포토만 수정 가능
-        if (!photo.getUser().getUserId().equals(userId)) {
+        if (!photo.getUser().getUserId().equals(user.getUserId())) {
             throw new GeneralException(ErrorStatus._FORBIDDEN);
         }
 
@@ -124,16 +116,13 @@ public class PhotoService {
     // 포토 삭제
     @Transactional
     public void deletePhoto(Long photoId) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        if (userId == null) {
-            throw new GeneralException(ErrorStatus._UNAUTHORIZED);
-        }
+        User user = userService.getCurrentUser();
 
         Photo photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
 
         // 본인의 포토만 삭제 가능
-        if (!photo.getUser().getUserId().equals(userId)) {
+        if (!photo.getUser().getUserId().equals(user.getUserId())) {
             throw new GeneralException(ErrorStatus._FORBIDDEN);
         }
 
@@ -154,10 +143,7 @@ public class PhotoService {
 
     // 내 사진 목록 조회 (커서 페이지네이션)
     public PhotoReseponseDto.MyPhotosCursorResponse getMyPhotos(PhotoRequestDto.MyPhotosCursorRequest request) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        if (userId == null) {
-            throw new GeneralException(ErrorStatus._UNAUTHORIZED);
-        }
+        User user = userService.getCurrentUser();
 
         // 요청 크기 검증 및 설정 (기본값 20, 최대 50)
         int size = (request.getSize() != null && request.getSize() > 0) 
@@ -169,7 +155,7 @@ public class PhotoService {
         // size + 1개를 조회하여 다음 페이지 존재 여부 확인
         Pageable pageable = PageRequest.of(0, size + 1);
         List<Photo> photos = photoRepository.findByUser_UserIdAndCreatedAtBeforeOrderByCreatedAtDesc(
-                userId, cursor, pageable);
+                user.getUserId(), cursor, pageable);
         
         // hasNext 확인 (size + 1개 조회했는데 실제로 size + 1개가 있으면 다음 페이지 존재)
         boolean hasNext = photos.size() > size;
@@ -197,16 +183,13 @@ public class PhotoService {
     // 포토 공개 여부 변경
     @Transactional
     public PhotoReseponseDto.PhotoResponse changePhotoVisibility(Long photoId, PhotoRequestDto.VisibilityChange visibilityRequest) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        if (userId == null) {
-            throw new GeneralException(ErrorStatus._UNAUTHORIZED);
-        }
+        User user = userService.getCurrentUser();
 
         Photo photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
 
         // 본인의 포토만 수정 가능
-        if (!photo.getUser().getUserId().equals(userId)) {
+        if (!photo.getUser().getUserId().equals(user.getUserId())) {
             throw new GeneralException(ErrorStatus._FORBIDDEN);
         }
 
@@ -218,16 +201,13 @@ public class PhotoService {
 
     // 업로드 후 근처 관광지 추천
     public PhotoReseponseDto.NearbySpotsResponse getNearbySpots(Long photoId, int limit) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        if (userId == null) {
-            throw new GeneralException(ErrorStatus._UNAUTHORIZED);
-        }
+        User user = userService.getCurrentUser();
 
         Photo photo = photoRepository.findById(photoId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
 
 //        // 본인의 포토만 조회 가능
-//        if (!photo.getUser().getUserId().equals(userId)) {
+//        if (!photo.getUser().getUserId().equals(user.getUserId())) {
 //            throw new GeneralException(ErrorStatus._FORBIDDEN);
 //        }
 

@@ -9,7 +9,7 @@ import com.example.momentory.domain.photo.repository.PhotoRepository;
 import com.example.momentory.domain.photo.entity.Visibility;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.repository.UserProfileRepository;
-import com.example.momentory.global.security.SecurityUtils;
+import com.example.momentory.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -32,6 +32,7 @@ public class HomeService {
     private final PhotoRepository photoRepository;
     private final CharacterService characterService;
     private final UserProfileRepository userProfileRepository;
+    private final UserService userService;
 
     public List<HomeDto.TravelSpotSummary> getTop3TravelSpots() {
         List<Map<String, String>> spots = culturalSpotService.getTop3GyeonggiSpots();
@@ -71,8 +72,8 @@ public class HomeService {
                 .build();
     }
 
-    public CharacterDto.CurrentCharacterResponse getMyCharacterStatus(User user) {
-        return characterService.getCurrentCharacter(user);
+    public CharacterDto.CurrentCharacterResponse getMyCharacterStatus() {
+        return characterService.getCurrentCharacter();
     }
 
     public List<HomeDto.EventSummary> getUpcomingEvents() {

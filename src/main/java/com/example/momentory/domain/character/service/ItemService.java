@@ -12,6 +12,7 @@ import com.example.momentory.domain.point.repository.PointHistoryRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.entity.UserProfile;
 import com.example.momentory.domain.user.repository.UserProfileRepository;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.exception.GeneralException;
 import com.example.momentory.global.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +35,10 @@ public class ItemService {
     private final CharacterConverter characterConverter;
     private final UserProfileRepository userProfileRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final UserService userService;
 
-    public List<ItemDto.MyItemResponse> getMyItems(User user) {
+    public List<ItemDto.MyItemResponse> getMyItems() {
+        User user = userService.getCurrentUser();
         List<UserItem> userItems = userItemRepository.findByUser(user);
         return userItems.stream()
                 .map(characterConverter::toMyItemResponse)
@@ -43,7 +46,8 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemDto.Response buyItem(User user, Long itemId) {
+    public ItemDto.Response buyItem(Long itemId) {
+        User user = userService.getCurrentUser();
         CharacterItem item = characterItemRepository.findById(itemId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.ITEM_NOT_FOUND));
 
@@ -85,7 +89,8 @@ public class ItemService {
     }
 
     @Transactional
-    public ItemDto.Response giveRandomItem(User user) {
+    public ItemDto.Response giveRandomItem() {
+        User user = userService.getCurrentUser();
         List<CharacterItem> allItems = characterItemRepository.findAll();
         if (allItems.isEmpty()) {
             throw new GeneralException(ErrorStatus.NO_ITEMS_AVAILABLE);

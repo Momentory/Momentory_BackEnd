@@ -9,6 +9,7 @@ import com.example.momentory.domain.character.repository.UserItemRepository;
 import com.example.momentory.domain.point.entity.PointActionType;
 import com.example.momentory.domain.point.entity.PointHistory;
 import com.example.momentory.domain.point.repository.PointHistoryRepository;
+import com.example.momentory.domain.point.service.PointService;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.entity.UserProfile;
 import com.example.momentory.domain.user.repository.UserProfileRepository;
@@ -34,7 +35,7 @@ public class ItemService {
     private final UserItemRepository userItemRepository;
     private final CharacterConverter characterConverter;
     private final UserProfileRepository userProfileRepository;
-    private final PointHistoryRepository pointHistoryRepository;
+    private final PointService pointService;
     private final UserService userService;
 
     public List<ItemDto.MyItemResponse> getMyItems() {
@@ -56,25 +57,8 @@ public class ItemService {
             throw new GeneralException(ErrorStatus.ITEM_ALREADY_OWNED);
         }
 
-        // UserProfile 조회
-        UserProfile userProfile = userProfileRepository.findByUser(user)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
-
-        // 포인트 확인
-        if (!userProfile.hasEnoughPoints(item.getPrice())) {
-            throw new GeneralException(ErrorStatus.INSUFFICIENT_POINTS);
-        }
-
-        // 포인트 차감
-        userProfile.minusPoint(item.getPrice());
-
-        // 포인트 히스토리 기록
-        PointHistory pointHistory = PointHistory.builder()
-                .user(user)
-                .actionType(PointActionType.BUY_ITEM)
-                .amount(-item.getPrice())  // 음수로 기록 (차감)
-                .build();
-        pointHistoryRepository.save(pointHistory);
+        // 포인트 차감 + 히스토리 기록을 PointService에서 처리
+        pointService.subtractPoint(user, item.getPrice(), PointActionType.BUY_ITEM);
 
         // UserItem 생성
         UserItem userItem = UserItem.builder()

@@ -72,14 +72,5 @@ public class CharacterDto {
         private EquippedItems equippedItems;
     }
 
-    @Getter
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class UserPoint{
-        private Long userId;
-        private int currentPoint;
-        private int totalPoint;
-    }
 }
 

@@ -8,6 +8,8 @@ import com.example.momentory.domain.character.entity.UserItem;
 import com.example.momentory.domain.character.repository.CharacterRepository;
 import com.example.momentory.domain.character.repository.UserItemRepository;
 import com.example.momentory.domain.character.util.LevelCalculator;
+import com.example.momentory.domain.point.entity.PointActionType;
+import com.example.momentory.domain.point.entity.PointHistory;
 import com.example.momentory.domain.point.repository.PointHistoryRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.service.UserService;
@@ -33,6 +35,8 @@ public class CharacterService {
     private final PointHistoryRepository pointHistoryRepository;
     private final LevelCalculator levelCalculator;
     private final UserService userService;
+
+    private static final int LEVEL_UP_BONUS = 200;
 
     @Transactional
     public CharacterDto.Response createCharacter(CharacterDto.CreateRequest request) {
@@ -63,7 +67,7 @@ public class CharacterService {
     public void createCharacterSigninUser(User user, CharacterType characterType){
         Character character = Character.builder()
                 .characterType(characterType)
-                .level(0)
+                .level(1)
                 .isStarter(true)
                 .owner(user)
                 .isCurrentCharacter(true)
@@ -98,7 +102,7 @@ public class CharacterService {
     }
 
     @Transactional
-    public CharacterDto.CurrentCharacterResponse getCurrentCharacter() {
+    public Character getCurrentCharacter() {
         User user = userService.getCurrentUser();
         Character currentCharacter = characterRepository.findCurrentCharacterByOwner(user)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.CURRENT_CHARACTER_NOT_FOUND));
@@ -106,17 +110,17 @@ public class CharacterService {
         // 레벨 갱신
         updateCharacterLevel(currentCharacter, user);
 
-        return characterConverter.toCurrentCharacterResponse(currentCharacter);
+        return currentCharacter;
     }
 
     @Transactional
     public List<CharacterDto.ListResponse> getAllCharacters() {
         User user = userService.getCurrentUser();
         List<Character> characters = characterRepository.findByOwner(user);
-        
+
         // 모든 캐릭터의 레벨을 갱신
         characters.forEach(character -> updateCharacterLevel(character, user));
-        
+
         return characters.stream()
                 .map(characterConverter::toCharacterListResponse)
                 .collect(Collectors.toList());
@@ -198,25 +202,28 @@ public class CharacterService {
 
     /**
      * 캐릭터의 레벨을 사용자의 누적 포인트 기준으로 갱신합니다.
+     * 레벨이 오를 경우 보너스 포인트를 지급합니다.
      */
-    private void updateCharacterLevel(Character character, User user) {
+    @Transactional
+    public void updateCharacterLevel(Character character, User user) {
         int totalPoints = pointHistoryRepository.calculateTotalPointsByUser(user);
         int newLevel = levelCalculator.calculateLevel(totalPoints);
-        
+
         if (character.getLevel() != newLevel) {
+            int oldLevel = character.getLevel();
             character.updateLevel(newLevel);
             characterRepository.save(character);
+
+            user.getProfile().plusPoint(LEVEL_UP_BONUS);
+
+            PointHistory levelUpHistory = PointHistory.builder()
+                    .user(user)
+                    .amount(LEVEL_UP_BONUS)
+                    .actionType(PointActionType.LEVELUP)
+                    .build();
+            pointHistoryRepository.save(levelUpHistory);
         }
     }
 
-    public CharacterDto.UserPoint getPointByUser(){
-        User user = userService.getCurrentUser();
-        int totalPoints =  pointHistoryRepository.calculateTotalPointsByUser(user);
-        return CharacterDto.UserPoint.builder()
-                .userId(user.getId())
-                .currentPoint(user.getProfile().getPoint())
-                .totalPoint(totalPoints)
-                .build();
-    }
 }
 

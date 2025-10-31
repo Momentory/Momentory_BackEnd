@@ -1,5 +1,6 @@
 package com.example.momentory.domain.character.controller;
 
+import com.example.momentory.domain.character.converter.CharacterConverter;
 import com.example.momentory.domain.character.dto.CharacterDto;
 import com.example.momentory.domain.character.service.CharacterService;
 import com.example.momentory.global.ApiResponse;
@@ -19,6 +20,7 @@ import java.util.List;
 public class CharacterController {
 
     private final CharacterService characterService;
+    private final CharacterConverter characterConverter;
 
     @PostMapping
     @Operation(summary = "캐릭터 생성", description = "새로운 캐릭터를 생성합니다.")
@@ -30,41 +32,31 @@ public class CharacterController {
     @PatchMapping("/{characterId}/select")
     @Operation(summary = "캐릭터 선택", description = "현재 캐릭터를 선택합니다.")
     public ApiResponse<CharacterDto.Response> selectCharacter(@PathVariable Long characterId) {
-        CharacterDto.Response response = characterService.selectCharacter(characterId);
-        return ApiResponse.onSuccess(response);
+        return ApiResponse.onSuccess(characterService.selectCharacter(characterId));
     }
 
     @GetMapping("/current")
     @Operation(summary = "현재 캐릭터 조회", description = "현재 선택된 캐릭터와 착용 아이템을 조회합니다.")
     public ApiResponse<CharacterDto.CurrentCharacterResponse> getCurrentCharacter() {
-        CharacterDto.CurrentCharacterResponse response = characterService.getCurrentCharacter();
-        return ApiResponse.onSuccess(response);
+        return ApiResponse.onSuccess(characterConverter.toCurrentCharacterResponse(characterService.getCurrentCharacter()));
     }
 
     @GetMapping
     @Operation(summary = "전체 캐릭터 목록 조회", description = "사용자가 보유한 모든 캐릭터 목록을 조회합니다.")
     public ApiResponse<List<CharacterDto.ListResponse>> getAllCharacters() {
-        List<CharacterDto.ListResponse> response = characterService.getAllCharacters();
-        return ApiResponse.onSuccess(response);
+        return ApiResponse.onSuccess(characterService.getAllCharacters());
     }
 
     @PatchMapping("/{characterId}/equip/{itemId}")
     @Operation(summary = "아이템 착용", description = "캐릭터에 아이템을 착용합니다.")
     public ApiResponse<CharacterDto.Response> equipItem(@PathVariable Long characterId, @PathVariable Long itemId) {
-        CharacterDto.Response response = characterService.equipItem(characterId, itemId);
-        return ApiResponse.onSuccess(response);
+        return ApiResponse.onSuccess(characterService.equipItem(characterId, itemId));
     }
 
     @PatchMapping("/{characterId}/unequip/{itemId}")
     @Operation(summary = "아이템 해제", description = "캐릭터에서 아이템을 해제합니다.")
     public ApiResponse<CharacterDto.Response> unequipItem(@PathVariable Long characterId, @PathVariable Long itemId) {
-        CharacterDto.Response response = characterService.unequipItem(characterId, itemId);
-        return ApiResponse.onSuccess(response);
+        return ApiResponse.onSuccess(characterService.unequipItem(characterId, itemId));
     }
 
-    @GetMapping("/point")
-    @Operation(summary = "내 포인트 조회", description = "사용자의 누적포인트, 현재 포인트를 조회합니다.")
-    public ApiResponse<CharacterDto.UserPoint> getPointUser() {
-        return ApiResponse.onSuccess(characterService.getPointByUser());
-    }
 }

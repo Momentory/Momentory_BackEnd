@@ -12,6 +12,7 @@ import com.example.momentory.domain.photo.repository.PhotoRepository;
 import com.example.momentory.domain.point.entity.PointHistory;
 import com.example.momentory.domain.point.entity.PointActionType;
 import com.example.momentory.domain.point.repository.PointHistoryRepository;
+import com.example.momentory.domain.point.service.PointService;
 import com.example.momentory.domain.stamp.repository.StampRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.service.UserService;
@@ -38,8 +39,7 @@ public class PhotoService {
     private final MapMarkerService mapMarkerService;
     private final CulturalSpotService culturalSpotService;
     private final KakaoMapService kakaoMapService;
-    private final StampRepository stampRepository;
-    private final PointHistoryRepository pointHistoryRepository;
+    private final PointService pointService;
 
     private static final int PHOTO_UPLOAD_POINTS = 50;
 
@@ -77,15 +77,7 @@ public class PhotoService {
         }
 
         // 사진 업로드 포인트 지급
-        user.getProfile().plusPoint(PHOTO_UPLOAD_POINTS);
-        
-        // 포인트 히스토리 기록 (일관성과 추적성을 위해)
-        PointHistory uploadPointHistory = PointHistory.builder()
-                .user(user)
-                .actionType(PointActionType.UPLOAD)
-                .amount(PHOTO_UPLOAD_POINTS)
-                .build();
-        pointHistoryRepository.save(uploadPointHistory);
+        pointService.addPoint(PHOTO_UPLOAD_POINTS, PointActionType.UPLOAD);
 
         return PhotoReseponseDto.PhotoUploadResponse.builder()
                 .photoId(savedPhoto.getPhotoId())

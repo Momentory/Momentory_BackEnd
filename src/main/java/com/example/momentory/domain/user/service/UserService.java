@@ -21,6 +21,12 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
 
+    public User getCurrentUser() {
+        Long userId = SecurityUtils.getCurrentUserId();
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+    }
+
     // 내 정보 조회
     public UserResponseDto.MyInfoDto getMyInfo() {
         Long userId = SecurityUtils.getCurrentUserId();

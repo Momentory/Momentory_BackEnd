@@ -76,7 +76,6 @@ public class MapQueryService {
                 .address(latestPublicPhoto.getAddress())
                 .memo(latestPublicPhoto.getMemo())
                 .visibility(latestPublicPhoto.getVisibility())
-                .createdAt(latestPublicPhoto.getCreatedAt())
                 .build();
     }
 

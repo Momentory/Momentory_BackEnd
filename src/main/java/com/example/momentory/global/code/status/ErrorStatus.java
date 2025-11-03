@@ -98,6 +98,7 @@ public enum ErrorStatus implements BaseErrorCode {
     NO_ITEMS_AVAILABLE(HttpStatus.NOT_FOUND, "ITEM4004", "사용 가능한 아이템이 없습니다."),
     ALL_ITEMS_OWNED(HttpStatus.BAD_REQUEST, "ITEM4005", "모든 아이템을 보유하고 있습니다."),
     INSUFFICIENT_POINTS(HttpStatus.BAD_REQUEST, "ITEM4006", "포인트가 부족합니다."),
+    ITEM_LEVEL_LOCKED(HttpStatus.FORBIDDEN, "ITEM4007", "레벨이 부족하여 해당 아이템을 구매할 수 없습니다."),
 
     // 옷장 관련 에러
     WARDROBE_NOT_FOUND(HttpStatus.NOT_FOUND, "WARDROBE4001", "옷장 슬롯을 찾을 수 없습니다."),

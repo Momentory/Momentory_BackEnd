@@ -22,13 +22,15 @@ public class CharacterItem extends BaseEntity {
     @Column(length = 20, nullable = false)
     private ItemCategory category;
 
-    private String imageUrl;
+    private String imageName;  // S3에 저장된 파일명
+    private String imageUrl;   // S3 URL
     private int price;
     private int unlockLevel;
 
-    public void update(String name, ItemCategory category, String imageUrl, int price, int unlockLevel) {
+    public void update(String name, ItemCategory category, String imageName, String imageUrl, int price, int unlockLevel) {
         this.name = name;
         this.category = category;
+        this.imageName = imageName;
         this.imageUrl = imageUrl;
         this.price = price;
         this.unlockLevel = unlockLevel;

@@ -2,7 +2,9 @@ package com.example.momentory.domain.character.service;
 
 import com.example.momentory.domain.character.converter.CharacterConverter;
 import com.example.momentory.domain.character.dto.ItemDto;
+import com.example.momentory.domain.character.entity.Character;
 import com.example.momentory.domain.character.entity.CharacterItem;
+import com.example.momentory.domain.character.entity.ItemCategory;
 import com.example.momentory.domain.character.entity.UserItem;
 import com.example.momentory.domain.character.repository.CharacterItemRepository;
 import com.example.momentory.domain.character.repository.UserItemRepository;
@@ -37,11 +39,16 @@ public class ItemService {
     private final UserProfileRepository userProfileRepository;
     private final PointService pointService;
     private final UserService userService;
+    private final CharacterService characterService;
 
-    public List<ItemDto.MyItemResponse> getMyItems() {
+    public List<ItemDto.MyItemResponse> getMyItems(ItemCategory category) {
         User user = userService.getCurrentUser();
         List<UserItem> userItems = userItemRepository.findByUser(user);
+        
+        log.info("내 아이템 조회 - 카테고리: {}", category);
+        
         return userItems.stream()
+                .filter(userItem -> category == null || userItem.getItem().getCategory() == category) // 카테고리 필터링
                 .map(characterConverter::toMyItemResponse)
                 .collect(Collectors.toList());
     }
@@ -49,8 +56,19 @@ public class ItemService {
     @Transactional
     public ItemDto.Response buyItem(Long itemId) {
         User user = userService.getCurrentUser();
+        
+        // 현재 캐릭터의 레벨 확인
+        Character currentCharacter = characterService.getCurrentCharacter();
+        int currentLevel = currentCharacter.getLevel();
+        
         CharacterItem item = characterItemRepository.findById(itemId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.ITEM_NOT_FOUND));
+
+        // 레벨 제한 확인
+        if (item.getUnlockLevel() > currentLevel) {
+            log.warn("아이템 구매 실패 - 레벨 부족. 필요 레벨: {}, 현재 레벨: {}", item.getUnlockLevel(), currentLevel);
+            throw new GeneralException(ErrorStatus.ITEM_LEVEL_LOCKED);
+        }
 
         // 이미 보유한 아이템인지 확인
         if (userItemRepository.existsByUserAndItem_ItemId(user, itemId)) {
@@ -75,27 +93,26 @@ public class ItemService {
     @Transactional
     public ItemDto.Response giveRandomItem() {
         User user = userService.getCurrentUser();
+        
+        // 랜덤 아이템은 레벨 제한 없이 모든 아이템 중에서 지급
         List<CharacterItem> allItems = characterItemRepository.findAll();
+        
         if (allItems.isEmpty()) {
             throw new GeneralException(ErrorStatus.NO_ITEMS_AVAILABLE);
         }
 
-        Random random = new Random();
-        CharacterItem randomItem = allItems.get(random.nextInt(allItems.size()));
+        // 보유하지 않은 아이템만 필터링
+        List<CharacterItem> notOwnedItems = allItems.stream()
+                .filter(item -> !userItemRepository.existsByUserAndItem_ItemId(user, item.getItemId()))
+                .collect(Collectors.toList());
 
-        // 이미 보유한 아이템인지 확인
-        if (userItemRepository.existsByUserAndItem_ItemId(user, randomItem.getItemId())) {
-            // 이미 보유한 경우 다른 아이템 선택
-            List<CharacterItem> notOwnedItems = allItems.stream()
-                    .filter(item -> !userItemRepository.existsByUserAndItem_ItemId(user, item.getItemId()))
-                    .collect(Collectors.toList());
-
-            if (notOwnedItems.isEmpty()) {
-                throw new GeneralException(ErrorStatus.ALL_ITEMS_OWNED);
-            }
-
-            randomItem = notOwnedItems.get(random.nextInt(notOwnedItems.size()));
+        if (notOwnedItems.isEmpty()) {
+            throw new GeneralException(ErrorStatus.ALL_ITEMS_OWNED);
         }
+
+        // 랜덤 선택
+        Random random = new Random();
+        CharacterItem randomItem = notOwnedItems.get(random.nextInt(notOwnedItems.size()));
 
         // UserItem 생성
         UserItem userItem = UserItem.builder()

@@ -1,6 +1,7 @@
 package com.example.momentory.domain.character.controller;
 
 import com.example.momentory.domain.character.dto.ItemDto;
+import com.example.momentory.domain.character.entity.ItemCategory;
 import com.example.momentory.domain.character.service.ItemService;
 import com.example.momentory.domain.character.service.ShopService;
 import com.example.momentory.global.ApiResponse;
@@ -23,9 +24,10 @@ public class ShopController {
     private final ItemService itemService;
 
     @GetMapping("/items")
-    @Operation(summary = "상점 아이템 목록 조회", description = "상점에서 구매 가능한 모든 아이템을 조회합니다.")
-    public ApiResponse<List<ItemDto.ShopItemResponse>> getAllShopItems() {
-        List<ItemDto.ShopItemResponse> response = shopService.getAllShopItems();
+    @Operation(summary = "상점 아이템 목록 조회", description = "상점에서 구매 가능한 아이템을 조회합니다.")
+    public ApiResponse<List<ItemDto.ShopItemResponse>> getAllShopItems(
+            @RequestParam ItemCategory category) {
+        List<ItemDto.ShopItemResponse> response = shopService.getAllShopItems(category);
         return ApiResponse.onSuccess(response);
     }
 

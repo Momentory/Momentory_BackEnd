@@ -16,7 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/posts")
+@RequestMapping("/api/community/posts")
 @RequiredArgsConstructor
 @Tag(name = "커뮤니티 API", description = "게시글 및 좋아요/댓글/스크랩 관련 API")
 public class CommunityController {

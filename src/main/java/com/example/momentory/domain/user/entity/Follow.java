@@ -1,9 +1,8 @@
-package com.example.momentory.domain.community.entity;
+package com.example.momentory.domain.user.entity;
 
 import com.example.momentory.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
-import com.example.momentory.domain.user.entity.User;
 
 @Entity
 @Table(name = "follows")
@@ -17,12 +16,13 @@ public class Follow extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long followId;
 
+    // 팔로우를 하는 사용자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "follower_id")
     private User follower;
 
+    // 팔로우를 받는 사용자
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "following_id")
     private User following;
 }
-

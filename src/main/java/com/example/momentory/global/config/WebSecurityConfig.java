@@ -107,7 +107,8 @@ public class WebSecurityConfig {
                 "http://localhost:5173",
                 "http://localhost:3000",
                 "https://www.momentory.store",
-                "http://www.momentory.store"
+                "http://www.momentory.store",
+                "https://momentory.store"
         );
 
         config.setAllowedOrigins(allowedOrigins);

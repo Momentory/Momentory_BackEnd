@@ -7,11 +7,14 @@ import com.example.momentory.domain.community.entity.Comment;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.community.repository.CommentRepository;
 import com.example.momentory.domain.community.repository.PostRepository;
+import com.example.momentory.domain.notification.entity.NotificationType;
+import com.example.momentory.domain.notification.event.NotificationEvent;
 import com.example.momentory.domain.user.entity.User;
-import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,19 +29,19 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final CommunityConverter communityConverter;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 댓글 생성
      */
     @Transactional
-    public Comment createComment(Long userId, Long postId, CommentRequestDto.CreateCommentDto request) {
+    public Comment createComment(Long postId, CommentRequestDto.CreateCommentDto request) {
+        User user = userService.getCurrentUser();
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
         Comment comment = Comment.builder()
                 .content(request.getContent())
@@ -50,6 +53,17 @@ public class CommentService {
 
         // 댓글 개수 증가
         post.increaseCommentCount();
+
+        // 게시글 작성자에게 알림 발송 (본인 글에 본인이 댓글 단 경우 제외)
+        if (!post.getUser().getId().equals(user.getId())) {
+            NotificationEvent event = NotificationEvent.builder()
+                    .targetUser(post.getUser())
+                    .type(NotificationType.COMMENT)
+                    .message(user.getNickname() + "님이 회원님의 게시글에 댓글을 남겼습니다.")
+                    .relatedId(post.getPostId())
+                    .build();
+            eventPublisher.publishEvent(event);
+        }
 
         return savedComment;
     }
@@ -90,11 +104,13 @@ public class CommentService {
      * 댓글 수정
      */
     @Transactional
-    public Comment updateComment(Long commentId, Long userId, CommentRequestDto.UpdateCommentDto request) {
+    public Comment updateComment(Long commentId, CommentRequestDto.UpdateCommentDto request) {
+        User user = userService.getCurrentUser();
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.COMMENT_NOT_FOUND));
 
-        if (!comment.getUser().getId().equals(userId)) {
+        if (!comment.getUser().getId().equals(user.getId())) {
             throw new GeneralException(ErrorStatus.COMMENT_UPDATE_FORBIDDEN);
         }
 
@@ -106,11 +122,13 @@ public class CommentService {
      * 댓글 삭제
      */
     @Transactional
-    public void deleteComment(Long commentId, Long userId) {
+    public void deleteComment(Long commentId) {
+        User user = userService.getCurrentUser();
+
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.COMMENT_NOT_FOUND));
 
-        if (!comment.getUser().getId().equals(userId)) {
+        if (!comment.getUser().getId().equals(user.getId())) {
             throw new GeneralException(ErrorStatus.COMMENT_DELETE_FORBIDDEN);
         }
 

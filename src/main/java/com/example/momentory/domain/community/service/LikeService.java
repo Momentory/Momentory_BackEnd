@@ -4,6 +4,8 @@ import com.example.momentory.domain.community.entity.Like;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.community.repository.LikeRepository;
 import com.example.momentory.domain.community.repository.PostRepository;
+import com.example.momentory.domain.user.entity.User;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
@@ -18,16 +20,19 @@ public class LikeService {
 
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
+    private final UserService userService;
 
     /**
      * 좋아요 토글 (설정/취소)
      */
     @Transactional
-    public boolean toggleLike(Long userId, Long postId) {
+    public boolean toggleLike(Long postId) {
+        User user = userService.getCurrentUser();
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
 
-        Optional<Like> existingLike = likeRepository.findByUserIdAndPost(userId, post);
+        Optional<Like> existingLike = likeRepository.findByUserAndPost(user, post);
 
         if (existingLike.isPresent()) {
             likeRepository.delete(existingLike.get());
@@ -35,7 +40,7 @@ public class LikeService {
             return false;
         } else {
             Like newLike = Like.builder()
-                    .userId(userId)
+                    .user(user)
                     .post(post)
                     .build();
 

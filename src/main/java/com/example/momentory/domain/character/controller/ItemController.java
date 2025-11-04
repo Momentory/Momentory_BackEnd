@@ -1,6 +1,7 @@
 package com.example.momentory.domain.character.controller;
 
 import com.example.momentory.domain.character.dto.ItemDto;
+import com.example.momentory.domain.character.entity.ItemCategory;
 import com.example.momentory.domain.character.service.ItemService;
 import com.example.momentory.global.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,9 +22,9 @@ public class ItemController {
     private final ItemService itemService;
 
     @GetMapping("/mine")
-    @Operation(summary = "내 아이템 목록 조회", description = "사용자가 보유한 모든 아이템을 조회합니다.")
-    public ApiResponse<List<ItemDto.MyItemResponse>> getMyItems() {
-        List<ItemDto.MyItemResponse> response = itemService.getMyItems();
+    @Operation(summary = "내 아이템 목록 조회", description = "사용자가 보유한 아이템을 조회합니다.")
+    public ApiResponse<List<ItemDto.MyItemResponse>> getMyItems(@RequestParam ItemCategory category) {
+        List<ItemDto.MyItemResponse> response = itemService.getMyItems(category);
         return ApiResponse.onSuccess(response);
     }
 

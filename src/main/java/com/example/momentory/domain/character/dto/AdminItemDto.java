@@ -15,6 +15,7 @@ public class AdminItemDto {
     public static class CreateRequest {
         private String name;
         private ItemCategory category;
+        private String imageName;
         private String imageUrl;
         private int price;
         private int unlockLevel;
@@ -27,6 +28,7 @@ public class AdminItemDto {
     public static class UpdateRequest {
         private String name;
         private ItemCategory category;
+        private String imageName;
         private String imageUrl;
         private int price;
         private int unlockLevel;
@@ -40,6 +42,7 @@ public class AdminItemDto {
         private Long itemId;
         private String name;
         private ItemCategory category;
+        private String imageName;
         private String imageUrl;
         private int price;
         private int unlockLevel;
@@ -53,6 +56,7 @@ public class AdminItemDto {
         private Long itemId;
         private String name;
         private ItemCategory category;
+        private String imageName;
         private String imageUrl;
         private int price;
         private int unlockLevel;

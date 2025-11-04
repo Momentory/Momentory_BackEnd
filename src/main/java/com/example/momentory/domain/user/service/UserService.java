@@ -1,5 +1,7 @@
 package com.example.momentory.domain.user.service;
 
+import com.example.momentory.domain.notification.entity.NotificationType;
+import com.example.momentory.domain.notification.event.NotificationEvent;
 import com.example.momentory.domain.user.dto.UserRequestDto;
 import com.example.momentory.domain.user.dto.UserResponseDto;
 import com.example.momentory.domain.user.entity.Follow;
@@ -12,6 +14,7 @@ import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import com.example.momentory.global.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +28,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
     private final FollowRepository followRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public User getCurrentUser() {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -165,6 +169,16 @@ public class UserService {
                     .build();
 
             followRepository.save(newFollow);
+
+            // 팔로우 대상자에게 알림 발송
+            NotificationEvent event = NotificationEvent.builder()
+                    .targetUser(following)
+                    .type(NotificationType.FOLLOW)
+                    .message(follower.getNickname() + "님이 회원님을 팔로우했습니다.")
+                    .relatedId(follower.getId())
+                    .build();
+            eventPublisher.publishEvent(event);
+
             return true;
         }
     }

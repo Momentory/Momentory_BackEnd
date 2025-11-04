@@ -1,6 +1,8 @@
 package com.example.momentory.domain.home.service;
 
+import com.example.momentory.domain.character.converter.CharacterConverter;
 import com.example.momentory.domain.character.dto.CharacterDto;
+import com.example.momentory.domain.character.entity.Character;
 import com.example.momentory.domain.character.service.CharacterService;
 import com.example.momentory.domain.home.dto.HomeDto;
 import com.example.momentory.domain.map.service.CulturalSpotService;
@@ -33,6 +35,7 @@ public class HomeService {
     private final CharacterService characterService;
     private final UserProfileRepository userProfileRepository;
     private final UserService userService;
+    private final CharacterConverter characterConverter;
 
     public List<HomeDto.TravelSpotSummary> getTop3TravelSpots() {
         List<Map<String, String>> spots = culturalSpotService.getTop3GyeonggiSpots();
@@ -73,7 +76,8 @@ public class HomeService {
     }
 
     public CharacterDto.CurrentCharacterResponse getMyCharacterStatus() {
-        return characterService.getCurrentCharacter();
+        // CharacterService의 새로운 메서드를 사용하여 레벨 상세 정보 포함
+        return characterService.getCurrentCharacterWithLevelInfo();
     }
 
     public List<HomeDto.EventSummary> getUpcomingEvents() {

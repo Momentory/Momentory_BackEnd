@@ -12,11 +12,12 @@ import com.example.momentory.domain.community.dto.CommentRequestDto;
 import com.example.momentory.domain.community.dto.CommentResponseDto;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.global.exception.GeneralException;
+import com.example.momentory.global.code.status.ErrorStatus;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ public class CommunityService {
         // ... (기존 toggleLike 메서드 코드) ...
         // 생략합니다.
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("ID " + postId + "에 해당하는 게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
 
         Optional<Like> existingLike = likeRepository.findByUserIdAndPost(userId, post);
 
@@ -72,10 +73,10 @@ public class CommunityService {
     @Transactional
     public Comment createComment(Long userId, Long postId, CommentRequestDto.CreateCommentDto request) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("ID " + postId + "에 해당하는 게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("ID " + userId + "에 해당하는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
         Comment comment = Comment.builder()
                 .content(request.getContent())
@@ -112,10 +113,10 @@ public class CommunityService {
     @Transactional
     public Comment updateComment(Long commentId, Long userId, CommentRequestDto.UpdateCommentDto request) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException("ID " + commentId + "에 해당하는 댓글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.COMMENT_NOT_FOUND));
 
         if (!comment.getUser().getId().equals(userId)) {
-            throw new RuntimeException("댓글 수정 권한이 없습니다.");
+            throw new GeneralException(ErrorStatus.COMMENT_UPDATE_FORBIDDEN);
         }
 
         comment.updateContent(request.getContent());
@@ -128,10 +129,10 @@ public class CommunityService {
     @Transactional
     public void deleteComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException("ID " + commentId + "에 해당하는 댓글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.COMMENT_NOT_FOUND));
 
         if (!comment.getUser().getId().equals(userId)) {
-            throw new RuntimeException("댓글 삭제 권한이 없습니다.");
+            throw new GeneralException(ErrorStatus.COMMENT_DELETE_FORBIDDEN);
         }
 
         commentRepository.delete(comment);
@@ -149,11 +150,11 @@ public class CommunityService {
 
         // 1. Post 엔티티 조회
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("ID " + postId + "에 해당하는 게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
 
         // 🚨 2. User 엔티티 조회 (Scrap 엔티티 생성 및 조회를 위해 필수)
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("ID " + userId + "에 해당하는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 3. 기존 스크랩 레코드 존재 확인 (findByUserAndPost 사용)
         Optional<Scrap> existingScrap = scrapRepository.findByUserAndPost(user, post);
@@ -182,7 +183,7 @@ public class CommunityService {
 
         // 1. User 엔티티 조회
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("ID " + userId + "에 해당하는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 2. 해당 사용자의 모든 Scrap 엔티티 조회 (findAllByUser 사용)
         List<Scrap> scrapList = scrapRepository.findAllByUser(user);

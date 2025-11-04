@@ -24,11 +24,6 @@ public class UserPrincipal implements UserDetails {
 
     // --- UserDetails 인터페이스 구현 메서드 (주요 로직) ---
 
-    // ID를 가져오는 사용자 정의 Getter (Controller에서 사용됨)
-    public Long getUserId() {
-        return userId;
-    }
-
     @Override
     public Collection<? extends SimpleGrantedAuthority> getAuthorities() {
         return authorities;

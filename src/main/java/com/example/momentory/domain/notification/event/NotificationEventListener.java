@@ -57,11 +57,16 @@ public class NotificationEventListener {
             return true;
         }
 
+        // 모든 알림이 꺼져있으면 전송하지 않음
+        if (!setting.isAllNotifications()) {
+            return false;
+        }
+
         // 알림 타입에 따라 설정 확인
         return switch (event.getType()) {
-            case COMMENT -> setting.isCommentAlert();
+            case COMMENT -> setting.isCommunityAlert();
             case FOLLOW -> setting.isFollowAlert();
-            case LEVEL_UP, ROULETTE, REWARD -> setting.isGrowthAlert();
+            case LEVEL_UP, ROULETTE, REWARD -> setting.isLevelUpAlert();
         };
     }
 }

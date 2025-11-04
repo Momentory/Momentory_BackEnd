@@ -6,7 +6,6 @@ import com.example.momentory.domain.community.service.LikeService;
 import com.example.momentory.domain.community.service.PostQueryService;
 import com.example.momentory.domain.community.service.PostService;
 import com.example.momentory.global.ApiResponse;
-import com.example.momentory.global.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +26,7 @@ public class PostController {
     @PostMapping
     @Operation(summary = "게시글 생성", description = "새로운 게시글을 작성합니다.")
     public ApiResponse<PostResponseDto.PostSimpleDto> createPost(@RequestBody PostRequestDto.CreatePostDto request) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.onSuccess(postService.createPost(userId, request));
+        return ApiResponse.onSuccess(postService.createPost(request));
     }
 
     @GetMapping("/{postId}")
@@ -81,24 +79,21 @@ public class PostController {
     public ApiResponse<PostResponseDto.PostSimpleDto> updatePost(
             @PathVariable Long postId,
             @RequestBody PostRequestDto.UpdatePostDto request) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.onSuccess(postService.updatePost(postId, userId, request));
+        return ApiResponse.onSuccess(postService.updatePost(postId, request));
     }
 
     @DeleteMapping("/{postId}")
     @Operation(summary = "게시글 삭제", description = "게시글을 삭제합니다.")
     public ApiResponse<String> deletePost(@PathVariable Long postId) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        postService.deletePost(postId, userId);
+        postService.deletePost(postId);
         return ApiResponse.onSuccess("게시글이 삭제되었습니다.");
     }
 
     @PostMapping("/{postId}/like")
     @Operation(summary = "게시글 좋아요 토글", description = "좋아요 설정 또는 취소.")
     public ApiResponse<String> toggleLike(@PathVariable Long postId) {
-        Long userId = SecurityUtils.getCurrentUserId();
         return ApiResponse.onSuccess(
-                likeService.toggleLike(userId, postId)
+                likeService.toggleLike(postId)
                         ? "게시글에 좋아요를 설정했습니다." : "게시글의 좋아요를 취소했습니다."
         );
     }

@@ -16,7 +16,6 @@ public class NotificationConverter {
                 .type(notification.getType())
                 .message(notification.getMessage())
                 .relatedId(notification.getRelatedId())
-                .relatedUrl(notification.getRelatedUrl())
                 .isRead(notification.isRead())
                 .createdAt(notification.getCreatedAt())
                 .build();

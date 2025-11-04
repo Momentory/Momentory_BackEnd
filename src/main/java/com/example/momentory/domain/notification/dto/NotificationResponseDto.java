@@ -43,4 +43,15 @@ public class NotificationResponseDto {
         private boolean hasUnread;
         private int unreadCount;
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class NotificationSettingResponse {
+        private boolean allNotifications;   // 모든 알림
+        private boolean communityAlert;     // 커뮤니티 알림
+        private boolean followAlert;        // 팔로우 알림
+        private boolean levelUpAlert;       // 캐릭터 레벨업 알림
+    }
 }

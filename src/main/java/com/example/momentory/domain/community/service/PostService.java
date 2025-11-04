@@ -14,7 +14,7 @@ import com.example.momentory.domain.tag.entity.TagType;
 import com.example.momentory.domain.tag.repository.PostTagRepository;
 import com.example.momentory.domain.tag.repository.TagRepository;
 import com.example.momentory.domain.user.entity.User;
-import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final RegionRepository regionRepository;
     private final TagRepository tagRepository;
     private final PostTagRepository postTagRepository;
@@ -39,10 +39,8 @@ public class PostService {
      * 게시글 생성
      */
     @Transactional
-    public PostResponseDto.PostSimpleDto createPost(Long userId, PostRequestDto.CreatePostDto request) {
-        // User 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+    public PostResponseDto.PostSimpleDto createPost(PostRequestDto.CreatePostDto request) {
+        User user = userService.getCurrentUser();
 
         // Region 조회 (선택사항)
         Region region = null;
@@ -87,12 +85,14 @@ public class PostService {
      * 게시글 수정
      */
     @Transactional
-    public PostResponseDto.PostSimpleDto updatePost(Long postId, Long userId, PostRequestDto.UpdatePostDto request) {
+    public PostResponseDto.PostSimpleDto updatePost(Long postId, PostRequestDto.UpdatePostDto request) {
+        User user = userService.getCurrentUser();
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
 
         // 작성자 확인
-        if (!post.getUser().getId().equals(userId)) {
+        if (!post.getUser().getId().equals(user.getId())) {
             throw new GeneralException(ErrorStatus._FORBIDDEN);
         }
 
@@ -145,12 +145,14 @@ public class PostService {
      * 게시글 삭제
      */
     @Transactional
-    public void deletePost(Long postId, Long userId) {
+    public void deletePost(Long postId) {
+        User user = userService.getCurrentUser();
+
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
 
         // 작성자 확인
-        if (!post.getUser().getId().equals(userId)) {
+        if (!post.getUser().getId().equals(user.getId())) {
             throw new GeneralException(ErrorStatus._FORBIDDEN);
         }
 

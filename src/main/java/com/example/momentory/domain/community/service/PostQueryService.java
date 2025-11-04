@@ -11,6 +11,7 @@ import com.example.momentory.domain.map.entity.Region;
 import com.example.momentory.domain.map.repository.RegionRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
 public class PostQueryService {
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final RegionRepository regionRepository;
     private final CommentRepository commentRepository;
     private final CommunityConverter communityConverter;
@@ -174,9 +175,8 @@ public class PostQueryService {
     /**
      * 내가 쓴 글 조회
      */
-    public List<PostResponseDto.PostDto> getMyPosts(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+    public List<PostResponseDto.PostDto> getMyPosts() {
+        User user = userService.getCurrentUser();
 
         List<Post> posts = postRepository.findAllByUser(user);
         return communityConverter.toPostDtoList(posts);
@@ -185,9 +185,8 @@ public class PostQueryService {
     /**
      * 내가 댓글 단 글 조회
      */
-    public List<PostResponseDto.PostDto> getPostsICommented(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+    public List<PostResponseDto.PostDto> getPostsICommented() {
+        User user = userService.getCurrentUser();
 
         // 해당 사용자가 작성한 모든 댓글 조회
         List<Comment> comments = commentRepository.findAllByUser(user);

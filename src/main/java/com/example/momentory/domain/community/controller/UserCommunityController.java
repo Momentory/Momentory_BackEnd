@@ -34,14 +34,12 @@ public class UserCommunityController {
     @GetMapping("/users/me/posts")
     @Operation(summary = "내가 쓴 글 조회", description = "현재 로그인 사용자가 작성한 게시글 목록 조회.")
     public ApiResponse<List<PostResponseDto.PostDto>> getMyPosts() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.onSuccess(postQueryService.getMyPosts(userId));
+        return ApiResponse.onSuccess(postQueryService.getMyPosts());
     }
 
     @GetMapping("/users/me/comments")
     @Operation(summary = "내가 댓글 단 글 조회", description = "현재 로그인 사용자가 댓글 단 게시글 목록 조회.")
     public ApiResponse<List<PostResponseDto.PostDto>> getPostsICommented() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        return ApiResponse.onSuccess(postQueryService.getPostsICommented(userId));
+        return ApiResponse.onSuccess(postQueryService.getPostsICommented());
     }
 }

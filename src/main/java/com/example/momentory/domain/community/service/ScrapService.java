@@ -7,7 +7,7 @@ import com.example.momentory.domain.community.entity.Scrap;
 import com.example.momentory.domain.community.repository.PostRepository;
 import com.example.momentory.domain.community.repository.ScrapRepository;
 import com.example.momentory.domain.user.entity.User;
-import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
@@ -24,21 +24,19 @@ public class ScrapService {
 
     private final ScrapRepository scrapRepository;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final CommunityConverter communityConverter;
 
     /**
      * 스크랩 토글 (설정/취소)
      */
     @Transactional
-    public boolean toggleScrap(Long userId, Long postId) {
+    public boolean toggleScrap(Long postId) {
+        User user = userService.getCurrentUser();
+
         // Post 엔티티 조회
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
-
-        // User 엔티티 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
         // 기존 스크랩 레코드 존재 확인
         Optional<Scrap> existingScrap = scrapRepository.findByUserAndPost(user, post);
@@ -63,10 +61,8 @@ public class ScrapService {
      * 사용자별 스크랩 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<PostResponseDto.PostDto> getUserScrapList(Long userId) {
-        // User 엔티티 조회
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+    public List<PostResponseDto.PostDto> getUserScrapList() {
+        User user = userService.getCurrentUser();
 
         // 해당 사용자의 모든 Scrap 엔티티 조회
         List<Scrap> scrapList = scrapRepository.findAllByUser(user);

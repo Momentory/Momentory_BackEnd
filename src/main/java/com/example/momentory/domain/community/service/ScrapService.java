@@ -1,5 +1,7 @@
 package com.example.momentory.domain.community.service;
 
+import com.example.momentory.domain.community.converter.CommunityConverter;
+import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.community.entity.Scrap;
 import com.example.momentory.domain.community.repository.PostRepository;
@@ -23,6 +25,7 @@ public class ScrapService {
     private final ScrapRepository scrapRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final CommunityConverter communityConverter;
 
     /**
      * 스크랩 토글 (설정/취소)
@@ -60,7 +63,7 @@ public class ScrapService {
      * 사용자별 스크랩 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<Post> getUserScrapList(Long userId) {
+    public List<PostResponseDto.PostDto> getUserScrapList(Long userId) {
         // User 엔티티 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
@@ -68,9 +71,11 @@ public class ScrapService {
         // 해당 사용자의 모든 Scrap 엔티티 조회
         List<Scrap> scrapList = scrapRepository.findAllByUser(user);
 
-        // Post 엔티티만 추출하여 반환
-        return scrapList.stream()
+        // Post 엔티티만 추출하여 DTO로 변환
+        List<Post> posts = scrapList.stream()
                 .map(Scrap::getPost)
                 .collect(Collectors.toList());
+
+        return communityConverter.toPostDtoList(posts);
     }
 }

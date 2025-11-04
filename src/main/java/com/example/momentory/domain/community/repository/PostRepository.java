@@ -21,6 +21,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // 사용자별 게시글 조회
     List<Post> findAllByUser(User user);
 
+    // ID 목록으로 게시글 조회 (성능 최적화)
+    List<Post> findByPostIdIn(List<Long> postIds);
+
     // 태그별 게시글 조회 (PostTag를 통해)
     @Query("SELECT DISTINCT p FROM Post p JOIN p.postTags pt JOIN pt.tag t WHERE t.name = :tagName")
     List<Post> findAllByTagName(@Param("tagName") String tagName);

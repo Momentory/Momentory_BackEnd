@@ -57,17 +57,4 @@ public class MyPageController {
         request.setSize(size);
         return ApiResponse.onSuccess(photoService.getMyPhotos(request));
     }
-
-    @PostMapping("/follow/{userId}")
-    @Operation(summary = "팔로우 토글", description = "특정 사용자를 팔로우하거나 팔로우를 취소합니다.")
-    public ApiResponse<String> toggleFollow(@PathVariable Long userId) {
-        Long currentUserId = userService.getCurrentUser().getId();
-        boolean isFollowing = userService.toggleFollow(currentUserId, userId);
-
-        if (isFollowing) {
-            return ApiResponse.onSuccess("팔로우했습니다.");
-        } else {
-            return ApiResponse.onSuccess("팔로우를 취소했습니다.");
-        }
-    }
 }

@@ -46,7 +46,12 @@ public class CommentService {
                 .post(post)
                 .build();
 
-        return commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+
+        // 댓글 개수 증가
+        post.increaseCommentCount();
+
+        return savedComment;
     }
 
     /**
@@ -109,6 +114,10 @@ public class CommentService {
             throw new GeneralException(ErrorStatus.COMMENT_DELETE_FORBIDDEN);
         }
 
+        Post post = comment.getPost();
         commentRepository.delete(comment);
+
+        // 댓글 개수 감소
+        post.decreaseCommentCount();
     }
 }

@@ -1,6 +1,6 @@
 package com.example.momentory.domain.community.controller;
 
-import com.example.momentory.domain.community.entity.Post;
+import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.service.ScrapService;
 import com.example.momentory.global.ApiResponse;
 import com.example.momentory.global.security.SecurityUtils;
@@ -31,7 +31,7 @@ public class ScrapController {
 
     @GetMapping("/users/me/scraps")
     @Operation(summary = "내가 스크랩한 게시글 조회", description = "현재 인증된 사용자가 스크랩한 게시글 목록을 조회합니다.")
-    public ApiResponse<List<Post>> getUserScraps() {
+    public ApiResponse<List<PostResponseDto.PostDto>> getUserScraps() {
         Long userId = SecurityUtils.getCurrentUserId();
         return ApiResponse.onSuccess(scrapService.getUserScrapList(userId));
     }

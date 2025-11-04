@@ -55,7 +55,7 @@ public class CommunityConverter {
                 .regionName(post.getRegion() != null ? post.getRegion().getName() : null)
                 .tags(tags)
                 .likeCount(post.getLikeCount())
-                .commentCount(post.getComments().size())
+                .commentCount(post.getCommentCount())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .build();

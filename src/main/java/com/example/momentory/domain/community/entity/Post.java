@@ -33,21 +33,25 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "region_id")
     private Region region;
 
-    @Column(nullable = false)
+    @Column
     private String title;
 
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false)
+    @Column
     private String imageUrl;
 
-    @Column(nullable = false)
+    @Column
     private String imageName;
 
     // ⭐ 좋아요 기능 추가: 좋아요 개수를 저장하는 필드
     @Builder.Default
     private int likeCount = 0;
+
+    // ⭐ 댓글 개수를 저장하는 필드
+    @Builder.Default
+    private int commentCount = 0;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -72,6 +76,22 @@ public class Post extends BaseEntity {
     public void decreaseLikeCount() {
         if (this.likeCount > 0) {
             this.likeCount--;
+        }
+    }
+
+    /**
+     * 댓글 개수를 1 증가시킵니다.
+     */
+    public void increaseCommentCount() {
+        this.commentCount++;
+    }
+
+    /**
+     * 댓글 개수를 1 감소시킵니다. (최소 0 유지)
+     */
+    public void decreaseCommentCount() {
+        if (this.commentCount > 0) {
+            this.commentCount--;
         }
     }
 

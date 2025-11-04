@@ -6,6 +6,7 @@ import com.example.momentory.domain.character.entity.CharacterItem;
 import com.example.momentory.domain.character.repository.CharacterItemRepository;
 import com.example.momentory.domain.character.repository.UserItemRepository;
 import com.example.momentory.domain.user.entity.User;
+import com.example.momentory.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,10 @@ public class ShopService {
     private final CharacterItemRepository characterItemRepository;
     private final UserItemRepository userItemRepository;
     private final CharacterConverter characterConverter;
+    private final UserService userService;
 
-    public List<ItemDto.ShopItemResponse> getAllShopItems(User user) {
+    public List<ItemDto.ShopItemResponse> getAllShopItems() {
+        User user = userService.getCurrentUser();
         List<CharacterItem> allItems = characterItemRepository.findAllByOrderByPriceAsc();
         
         return allItems.stream()

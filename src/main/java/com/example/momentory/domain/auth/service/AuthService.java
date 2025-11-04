@@ -8,10 +8,17 @@ import com.example.momentory.domain.auth.repository.UserTermsRepository;
 import com.example.momentory.domain.auth.converter.AuthConverter;
 import com.example.momentory.domain.auth.dto.AuthRequestDTO;
 import com.example.momentory.domain.auth.dto.AuthResponseDTO;
+import com.example.momentory.domain.character.dto.CharacterDto;
+import com.example.momentory.domain.character.entity.CharacterType;
+import com.example.momentory.domain.character.service.CharacterService;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.entity.UserProfile;
+import com.example.momentory.domain.point.entity.PointHistory;
+import com.example.momentory.domain.point.entity.PointActionType;
+import com.example.momentory.domain.point.repository.PointHistoryRepository;
 import com.example.momentory.domain.user.repository.UserProfileRepository;
 import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import com.example.momentory.global.security.SecurityUtils;
@@ -32,17 +39,28 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final UserService userService;
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final UserTermsRepository userTermsRepository;
     private final MailService mailService;
+    private final CharacterService characterService;
+    private final PointHistoryRepository pointHistoryRepository;
 
     private final PasswordEncoder passwordEncoder;
 
+    private static final int SIGNUP_BONUS_POINTS = 500;
+
     @Transactional
-    public AuthResponseDTO.SignResponseDTO signUp(AuthConverter.UserRegistrationData data, boolean agreeTerms) {
+    public AuthResponseDTO.SignResponseDTO signUp(AuthConverter.UserRegistrationData data, boolean agreeTerms, CharacterType characterType) {
+        // 약관 동의 확인
         if (!agreeTerms) {
             throw new GeneralException(ErrorStatus.TERMS_NOT_AGREED);
+        }
+        
+        // 캐릭터 타입 확인
+        if (characterType == null) {
+            throw new GeneralException(ErrorStatus.INVALID_INPUT);
         }
         
         validatePassword(data.user().getPassword());
@@ -55,7 +73,18 @@ public class AuthService {
             User savedUser = userRepository.save(data.user());
             UserProfile userProfile = data.userProfile();
             userProfile.setUser(savedUser);
+            
+            // 가입 축하 포인트 지급
+            userProfile.plusPoint(SIGNUP_BONUS_POINTS);
             userProfileRepository.save(userProfile);
+            
+            // 가입 포인트 PointHistory에 기록 (일관성과 추적성을 위해)
+            PointHistory signupPointHistory = PointHistory.builder()
+                    .user(savedUser)
+                    .actionType(PointActionType.SIGNUP)
+                    .amount(SIGNUP_BONUS_POINTS)
+                    .build();
+            pointHistoryRepository.save(signupPointHistory);
 
             // UserTerms 저장 (모든 약관 타입에 대해 동의 처리)
             for (TermsType termsType : TermsType.values()) {
@@ -66,6 +95,8 @@ public class AuthService {
                         .build();
                 userTermsRepository.save(userTerms);
             }
+
+            characterService.createCharacterSigninUser(savedUser, characterType);
 
             return AuthConverter.toSigninResponseDTO(savedUser);
         } catch (DataIntegrityViolationException e) {
@@ -178,8 +209,7 @@ public class AuthService {
             throw new GeneralException(ErrorStatus.INVALID_REFRESH_TOKEN);
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+        User user = userService.getCurrentUser();
 
         String newAccessToken = tokenProvider.generateAccessToken(user);
 
@@ -190,17 +220,14 @@ public class AuthService {
     //로그아웃
     @Transactional
     public void logout() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        refreshTokenRepository.deleteByUserId(userId);
+        User user = userService.getCurrentUser();
+        refreshTokenRepository.deleteByUserId(user.getUserId());
     }
 
     @Transactional
     public AuthResponseDTO.SignResponseDTO setProfile(AuthRequestDTO.KakaoRequestDTO dto) {
-        Long userId = SecurityUtils.getCurrentUserId();
-
         try {
-            User user = userRepository.findById(userId)
-                    .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+            User user = userService.getCurrentUser();
 
             // 탈퇴한 사용자인지 확인
             if (!user.isActive()) {
@@ -213,7 +240,7 @@ public class AuthService {
             }
 
             Optional<UserProfile> existingByNickName = userProfileRepository.findByNickname(dto.getNickName());
-            if (existingByNickName.isPresent() && !existingByNickName.get().getUser().getId().equals(userId)) {
+            if (existingByNickName.isPresent() && !existingByNickName.get().getUser().getId().equals(user.getUserId())) {
                 throw new GeneralException(ErrorStatus.NICKNAME_DUPLICATE);
             }
 

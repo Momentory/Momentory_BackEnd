@@ -79,4 +79,14 @@ public class PhotoReseponseDto {
         private String address;
         private String cityName; // "부천시" 형태로 추출된 도시명
     }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @Builder
+    public static class MyPhotosCursorResponse{
+        private java.util.List<PhotoResponse> photos;
+        private LocalDateTime nextCursor;  // 다음 페이지 커서 (마지막 항목의 createdAt)
+        private Boolean hasNext;            // 다음 페이지 존재 여부
+    }
 }

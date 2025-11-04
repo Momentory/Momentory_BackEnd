@@ -1,11 +1,7 @@
 package com.example.momentory.domain.map.controller;
 
 import com.example.momentory.domain.map.service.MapQueryService;
-import com.example.momentory.domain.map.service.UserRegionColorService;
 import com.example.momentory.domain.photo.dto.PhotoReseponseDto;
-import com.example.momentory.domain.user.entity.User;
-import com.example.momentory.domain.user.repository.UserRepository;
-import com.example.momentory.global.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,7 +19,6 @@ import java.util.Map;
 public class MapController {
 
     private final MapQueryService mapQueryService;
-    private final UserRepository userRepository;
 
     // ========== 전체 지도 API ==========
     
@@ -69,12 +64,7 @@ public class MapController {
         tags = {"지도 API"}
     )
     public ResponseEntity<Map<String, String>> getMyMapVisitStatus() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        if (userId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        Map<String, String> visitStatusMap = mapQueryService.getAllRegionVisitStatus(userId);
+        Map<String, String> visitStatusMap = mapQueryService.getAllRegionVisitStatus();
         return ResponseEntity.ok(visitStatusMap);
     }
     
@@ -88,17 +78,7 @@ public class MapController {
         tags = {"지도 API"}
     )
     public ResponseEntity<Map<String, PhotoReseponseDto.PhotoResponse>> getAllRegionsLatestMyPhotos() {
-        Long userId = SecurityUtils.getCurrentUserId();
-        if (userId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        Map<String, PhotoReseponseDto.PhotoResponse> photosMap = mapQueryService.getAllRegionsLatestUserPhotos(user);
+        Map<String, PhotoReseponseDto.PhotoResponse> photosMap = mapQueryService.getAllRegionsLatestUserPhotos();
         return ResponseEntity.ok(photosMap);
     }
     
@@ -114,17 +94,7 @@ public class MapController {
     public ResponseEntity<List<PhotoReseponseDto.PhotoResponse>> getMyPhotosByRegion(
             @Parameter(description = "지역명 (예: 부천시)", required = true)
             @RequestParam String regionName) {
-        Long userId = SecurityUtils.getCurrentUserId();
-        if (userId == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        
-        List<PhotoReseponseDto.PhotoResponse> photos = mapQueryService.getUserPhotosByRegion(regionName, user);
+        List<PhotoReseponseDto.PhotoResponse> photos = mapQueryService.getUserPhotosByRegion(regionName);
         return ResponseEntity.ok(photos);
     }
 }

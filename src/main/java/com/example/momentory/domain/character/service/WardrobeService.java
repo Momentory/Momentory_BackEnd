@@ -9,6 +9,7 @@ import com.example.momentory.domain.character.repository.CharacterRepository;
 import com.example.momentory.domain.character.repository.UserItemRepository;
 import com.example.momentory.domain.character.repository.WardrobeRepository;
 import com.example.momentory.domain.user.entity.User;
+import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.exception.GeneralException;
 import com.example.momentory.global.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +30,11 @@ public class WardrobeService {
     private final CharacterRepository characterRepository;
     private final UserItemRepository userItemRepository;
     private final CharacterConverter characterConverter;
+    private final UserService userService;
 
     @Transactional
-    public WardrobeDto.Response saveCurrentStyle(User user, WardrobeDto.CreateRequest request) {
+    public WardrobeDto.Response saveCurrentStyle(WardrobeDto.CreateRequest request) {
+        User user = userService.getCurrentUser();
         Character currentCharacter = characterRepository.findCurrentCharacterByOwner(user)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.CURRENT_CHARACTER_NOT_FOUND));
 
@@ -49,7 +52,8 @@ public class WardrobeService {
         return characterConverter.toWardrobeResponse(savedWardrobe);
     }
 
-    public List<WardrobeDto.ListResponse> getMyWardrobes(User user) {
+    public List<WardrobeDto.ListResponse> getMyWardrobes() {
+        User user = userService.getCurrentUser();
         List<Wardrobe> wardrobes = wardrobeRepository.findByUser(user);
         return wardrobes.stream()
                 .map(characterConverter::toWardrobeListResponse)
@@ -57,7 +61,8 @@ public class WardrobeService {
     }
 
     @Transactional
-    public WardrobeDto.Response applyWardrobeStyle(User user, Long wardrobeId) {
+    public WardrobeDto.Response applyWardrobeStyle(Long wardrobeId) {
+        User user = userService.getCurrentUser();
         Wardrobe wardrobe = wardrobeRepository.findById(wardrobeId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.WARDROBE_NOT_FOUND));
 

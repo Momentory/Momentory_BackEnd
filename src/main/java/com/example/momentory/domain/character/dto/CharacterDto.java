@@ -71,5 +71,15 @@ public class CharacterDto {
         private boolean isCurrentCharacter;
         private EquippedItems equippedItems;
     }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UserPoint{
+        private Long userId;
+        private int currentPoint;
+        private int totalPoint;
+    }
 }
 

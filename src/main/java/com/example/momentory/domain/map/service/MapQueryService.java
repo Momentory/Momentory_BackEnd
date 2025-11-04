@@ -7,9 +7,9 @@ import com.example.momentory.domain.map.repository.RegionRepository;
 import com.example.momentory.domain.photo.dto.PhotoReseponseDto;
 import com.example.momentory.domain.photo.entity.Photo;
 import com.example.momentory.domain.photo.entity.Visibility;
-import com.example.momentory.domain.photo.repository.StampRepository;
+import com.example.momentory.domain.stamp.repository.StampRepository;
 import com.example.momentory.domain.user.entity.User;
-import com.example.momentory.domain.user.repository.UserRepository;
+import com.example.momentory.domain.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +26,7 @@ public class MapQueryService {
     private final StampRepository stampRepository;
     private final RegionRepository regionRepository;
     private final UserRegionColorService userRegionColorService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     // ========== 전체 지도용 메서드 ==========
     
@@ -76,7 +76,6 @@ public class MapQueryService {
                 .address(latestPublicPhoto.getAddress())
                 .memo(latestPublicPhoto.getMemo())
                 .visibility(latestPublicPhoto.getVisibility())
-                .createdAt(latestPublicPhoto.getCreatedAt())
                 .build();
     }
 
@@ -103,7 +102,8 @@ public class MapQueryService {
     /**
      * 나의 지도용: 특정 지역의 특정 사용자 사진들 조회 (visibility 상관없이)
      */
-    public List<PhotoReseponseDto.PhotoResponse> getUserPhotosByRegion(String regionName, User user) {
+    public List<PhotoReseponseDto.PhotoResponse> getUserPhotosByRegion(String regionName) {
+        User user = userService.getCurrentUser();
         List<MapMarker> markers = mapMarkerRepository.findAllByRegion(regionName);
 
         return markers.stream()
@@ -161,7 +161,8 @@ public class MapQueryService {
      * @param user 사용자
      * @return Map<String, PhotoReseponseDto.PhotoResponse> - 지역명과 최신 사진
      */
-    public Map<String, PhotoReseponseDto.PhotoResponse> getAllRegionsLatestUserPhotos(User user) {
+    public Map<String, PhotoReseponseDto.PhotoResponse> getAllRegionsLatestUserPhotos() {
+        User user = userService.getCurrentUser();
         List<Region> allRegions = regionRepository.findAll();
         Map<String, PhotoReseponseDto.PhotoResponse> resultMap = new HashMap<>();
         
@@ -179,10 +180,11 @@ public class MapQueryService {
     
     /**
      * 현재 로그인한 사용자가 방문한 지역의 색깔 정보를 조회
-     * @param userId 현재 로그인한 사용자 ID
      * @return Map<String, String> - 방문한 지역명과 해당 지역의 색깔
      */
-    public Map<String, String> getAllRegionVisitStatus(Long userId) {
+    public Map<String, String> getAllRegionVisitStatus() {
+        User user = userService.getCurrentUser();
+        
         // 1. 모든 지역 목록 조회
         List<Region> allRegions = regionRepository.findAll();
         
@@ -190,15 +192,12 @@ public class MapQueryService {
         Map<String, String> visitedRegionsMap = new HashMap<>();
         
         for (Region region : allRegions) {
-            boolean hasVisited = stampRepository.existsByUserUserIdAndRegion(userId, region.getName());
+            boolean hasVisited = stampRepository.existsByUserUserIdAndRegion(user.getUserId(), region.getName());
             if (hasVisited) {
                 // 방문한 지역의 경우, UserRegionColor에서 색깔 정보 가져오기
-                User user = userRepository.findById(userId).orElse(null);
-                if (user != null) {
-                    String color = userRegionColorService.getRegionColor(user, region.getName()).orElse(null);
-                    if (color != null) {
-                        visitedRegionsMap.put(region.getName(), color);
-                    }
+                String color = userRegionColorService.getRegionColor(user, region.getName()).orElse(null);
+                if (color != null) {
+                    visitedRegionsMap.put(region.getName(), color);
                 }
             }
         }

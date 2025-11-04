@@ -1,17 +1,24 @@
 package com.example.momentory.domain.user.service;
 
+import com.example.momentory.domain.notification.entity.NotificationType;
+import com.example.momentory.domain.notification.event.NotificationEvent;
 import com.example.momentory.domain.user.dto.UserRequestDto;
 import com.example.momentory.domain.user.dto.UserResponseDto;
+import com.example.momentory.domain.user.entity.Follow;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.entity.UserProfile;
+import com.example.momentory.domain.user.repository.FollowRepository;
 import com.example.momentory.domain.user.repository.UserProfileRepository;
 import com.example.momentory.domain.user.repository.UserRepository;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import com.example.momentory.global.security.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +27,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final UserProfileRepository userProfileRepository;
+    private final FollowRepository followRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public User getCurrentUser() {
         Long userId = SecurityUtils.getCurrentUserId();
@@ -129,5 +138,48 @@ public class UserService {
         userProfileRepository.save(userProfile);
 
         return "회원 탈퇴가 완료되었습니다.";
+    }
+
+    // 팔로우 토글 (등록/해제)
+    @Transactional
+    public boolean toggleFollow(Long currentUserId, Long targetUserId) {
+        // 자기 자신을 팔로우하는 것을 방지
+        if (currentUserId.equals(targetUserId)) {
+            throw new GeneralException(ErrorStatus._BAD_REQUEST);
+        }
+
+        User follower = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        User following = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        // 팔로우 관계 확인
+        Optional<Follow> existingFollow = followRepository.findByFollowerAndFollowing(follower, following);
+
+        if (existingFollow.isPresent()) {
+            // 팔로우 해제 (DELETE)
+            followRepository.delete(existingFollow.get());
+            return false;
+        } else {
+            // 팔로우 등록 (INSERT)
+            Follow newFollow = Follow.builder()
+                    .follower(follower)
+                    .following(following)
+                    .build();
+
+            followRepository.save(newFollow);
+
+            // 팔로우 대상자에게 알림 발송
+            NotificationEvent event = NotificationEvent.builder()
+                    .targetUser(following)
+                    .type(NotificationType.FOLLOW)
+                    .message(follower.getNickname() + "님이 회원님을 팔로우했습니다.")
+                    .relatedId(follower.getId())
+                    .build();
+            eventPublisher.publishEvent(event);
+
+            return true;
+        }
     }
 }

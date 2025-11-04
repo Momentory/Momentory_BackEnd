@@ -41,6 +41,10 @@ public class PhotoReseponseDto {
         // 문화시설 관련
         private boolean hasNearbyCulturalSpots;
         private String nearbyCulturalSpotName;
+        
+        // 룰렛 인증 관련
+        private boolean rouletteRewardGranted;  // 룰렛 인증 성공 여부
+        private Integer rouletteRewardPoint;     // 룰렛 보상 포인트 (500p)
     }
 
     @Getter

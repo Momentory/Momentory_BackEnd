@@ -8,10 +8,15 @@ import com.example.momentory.domain.character.entity.Character;
 import com.example.momentory.domain.character.entity.CharacterItem;
 import com.example.momentory.domain.character.entity.UserItem;
 import com.example.momentory.domain.character.entity.Wardrobe;
+import com.example.momentory.domain.character.util.LevelCalculator;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class CharacterConverter {
+
+    private final LevelCalculator levelCalculator;
 
     public CharacterDto.Response toCharacterResponse(Character character) {
         return CharacterDto.Response.builder()
@@ -23,11 +28,25 @@ public class CharacterConverter {
                 .build();
     }
 
-    public CharacterDto.CurrentCharacterResponse toCurrentCharacterResponse(Character character) {
+    public CharacterDto.CurrentCharacterResponse toCurrentCharacterResponse(Character character, int totalPoints) {
+        // 레벨 정보 계산
+        int currentLevel = character.getLevel();
+        int nextLevelPoints = levelCalculator.getRequiredPointsForLevel(currentLevel + 1);
+        int remainingPoints = levelCalculator.getPointsUntilNextLevel(totalPoints);
+        int pointsForNextLevel = levelCalculator.getPointsForNextLevel(currentLevel);
+        
+        CharacterDto.LevelInfo levelInfo = CharacterDto.LevelInfo.builder()
+                .currentPoints(totalPoints)
+                .nextLevelPoints(nextLevelPoints)
+                .remainingPoints(remainingPoints)
+                .pointsForNextLevel(pointsForNextLevel)
+                .build();
+
         return CharacterDto.CurrentCharacterResponse.builder()
                 .characterId(character.getCharacterId())
                 .characterType(character.getCharacterType())
-                .level(character.getLevel())
+                .level(currentLevel)
+                .levelInfo(levelInfo)
                 .equipped(toEquippedItems(character))
                 .build();
     }
@@ -134,6 +153,7 @@ public class CharacterConverter {
                 .itemId(item.getItemId())
                 .name(item.getName())
                 .category(item.getCategory())
+                .imageName(item.getImageName())
                 .imageUrl(item.getImageUrl())
                 .price(item.getPrice())
                 .unlockLevel(item.getUnlockLevel())
@@ -145,6 +165,7 @@ public class CharacterConverter {
                 .itemId(item.getItemId())
                 .name(item.getName())
                 .category(item.getCategory())
+                .imageName(item.getImageName())
                 .imageUrl(item.getImageUrl())
                 .price(item.getPrice())
                 .unlockLevel(item.getUnlockLevel())

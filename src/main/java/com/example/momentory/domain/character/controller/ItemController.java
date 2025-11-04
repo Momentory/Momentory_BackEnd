@@ -23,7 +23,7 @@ public class ItemController {
 
     @GetMapping("/mine")
     @Operation(summary = "내 아이템 목록 조회", description = "사용자가 보유한 아이템을 조회합니다.")
-    public ApiResponse<List<ItemDto.MyItemResponse>> getMyItems(@RequestParam ItemCategory category) {
+    public ApiResponse<List<ItemDto.MyItemResponse>> getMyItems(@RequestParam(required = false) ItemCategory category) {
         List<ItemDto.MyItemResponse> response = itemService.getMyItems(category);
         return ApiResponse.onSuccess(response);
     }

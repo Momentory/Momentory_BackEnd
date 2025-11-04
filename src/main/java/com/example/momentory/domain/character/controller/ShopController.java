@@ -26,7 +26,7 @@ public class ShopController {
     @GetMapping("/items")
     @Operation(summary = "상점 아이템 목록 조회", description = "상점에서 구매 가능한 아이템을 조회합니다.")
     public ApiResponse<List<ItemDto.ShopItemResponse>> getAllShopItems(
-            @RequestParam ItemCategory category) {
+            @RequestParam(required = false) ItemCategory category) {
         List<ItemDto.ShopItemResponse> response = shopService.getAllShopItems(category);
         return ApiResponse.onSuccess(response);
     }

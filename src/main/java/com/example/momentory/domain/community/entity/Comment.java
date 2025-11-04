@@ -27,5 +27,14 @@ public class Comment extends BaseEntity {
 
     @Column(columnDefinition = "TEXT")
     private String content;
-}
 
+    // --- 댓글 수정 로직 추가 ---
+
+    /**
+     * 댓글 내용을 수정합니다.
+     * @param newContent 새로 수정할 댓글 내용
+     */
+    public void updateContent(String newContent) {
+        this.content = newContent;
+    }
+}

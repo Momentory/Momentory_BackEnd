@@ -11,8 +11,8 @@ RUN gradle dependencies --no-daemon || return 0
 COPY src src
 RUN gradle bootJar --no-daemon
 
-# 2단계: 실행 환경 (JRE만 포함, 훨씬 가벼움)
-FROM openjdk:17-jdk-slim
+# 2단계: 실행 환경
+FROM eclipse-temurin:17-jdk-jammy
 ENV TZ=Asia/Seoul
 RUN ln -sf /usr/share/zoneinfo/Asia/Seoul /etc/localtime
 ENV JAVA_TOOL_OPTIONS="-Duser.timezone=Asia/Seoul"

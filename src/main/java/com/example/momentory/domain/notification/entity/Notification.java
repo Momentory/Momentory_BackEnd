@@ -25,6 +25,15 @@ public class Notification extends BaseEntity {
     private NotificationType type;
 
     private String message;
+
+    private Long relatedId;  // 댓글ID, 게시글ID, 팔로우ID 등
+
+    @Column(name = "is_read")
     private boolean isRead;
+
+    // 읽음 처리 메서드
+    public void markAsRead() {
+        this.isRead = true;
+    }
 }
 

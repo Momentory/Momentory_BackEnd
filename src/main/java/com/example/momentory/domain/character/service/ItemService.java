@@ -45,8 +45,6 @@ public class ItemService {
         User user = userService.getCurrentUser();
         List<UserItem> userItems = userItemRepository.findByUser(user);
         
-        log.info("내 아이템 조회 - 카테고리: {}", category);
-        
         return userItems.stream()
                 .filter(userItem -> category == null || userItem.getItem().getCategory() == category) // 카테고리 필터링
                 .map(characterConverter::toMyItemResponse)

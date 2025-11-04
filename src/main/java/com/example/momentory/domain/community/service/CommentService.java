@@ -7,11 +7,14 @@ import com.example.momentory.domain.community.entity.Comment;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.community.repository.CommentRepository;
 import com.example.momentory.domain.community.repository.PostRepository;
+import com.example.momentory.domain.notification.entity.NotificationType;
+import com.example.momentory.domain.notification.event.NotificationEvent;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.repository.UserRepository;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,7 @@ public class CommentService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final CommunityConverter communityConverter;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 댓글 생성
@@ -50,6 +54,17 @@ public class CommentService {
 
         // 댓글 개수 증가
         post.increaseCommentCount();
+
+        // 게시글 작성자에게 알림 발송 (본인 글에 본인이 댓글 단 경우 제외)
+        if (!post.getUser().getId().equals(userId)) {
+            NotificationEvent event = NotificationEvent.builder()
+                    .targetUser(post.getUser())
+                    .type(NotificationType.COMMENT)
+                    .message(user.getNickname() + "님이 회원님의 게시글에 댓글을 남겼습니다.")
+                    .relatedId(post.getPostId())
+                    .build();
+            eventPublisher.publishEvent(event);
+        }
 
         return savedComment;
     }

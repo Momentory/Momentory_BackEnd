@@ -37,7 +37,6 @@ public class AdminItemService {
                 .build();
 
         CharacterItem savedItem = characterItemRepository.save(item);
-        log.info("아이템 생성 완료 - ID: {}, 이름: {}, imageName: {}", savedItem.getItemId(), savedItem.getName(), savedItem.getImageName());
         return characterConverter.toAdminItemResponse(savedItem);
     }
 
@@ -64,7 +63,6 @@ public class AdminItemService {
             if (item.getImageName() != null && !item.getImageName().isEmpty()) {
                 try {
                     s3Service.deleteFile(item.getImageName());
-                    log.info("기존 이미지 S3 삭제 완료 - imageName: {}", item.getImageName());
                 } catch (Exception e) {
                     log.error("기존 이미지 S3 삭제 실패 - imageName: {}, 오류: {}", item.getImageName(), e.getMessage());
                 }
@@ -81,7 +79,6 @@ public class AdminItemService {
                 request.getUnlockLevel()
         );
 
-        log.info("아이템 수정 완료 - ID: {}, imageName: {}", itemId, request.getImageName());
         return characterConverter.toAdminItemResponse(item);
     }
 
@@ -94,7 +91,6 @@ public class AdminItemService {
         if (item.getImageName() != null && !item.getImageName().isEmpty()) {
             try {
                 s3Service.deleteFile(item.getImageName());
-                log.info("아이템 이미지 S3 삭제 완료 - itemId: {}, imageName: {}", itemId, item.getImageName());
             } catch (Exception e) {
                 log.error("아이템 이미지 S3 삭제 실패 - itemId: {}, imageName: {}, 오류: {}", itemId, item.getImageName(), e.getMessage());
                 // S3 삭제 실패해도 DB에서는 삭제 진행 (로그만 남김)
@@ -102,6 +98,5 @@ public class AdminItemService {
         }
         
         characterItemRepository.delete(item);
-        log.info("아이템 DB 삭제 완료 - itemId: {}", itemId);
     }
 }

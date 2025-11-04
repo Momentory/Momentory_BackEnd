@@ -36,8 +36,6 @@ public class ShopService {
         Character currentCharacter = characterService.getCurrentCharacter();
         int currentLevel = currentCharacter.getLevel();
         
-        log.info("사용자 상점 조회 - 현재 레벨: {}, 카테고리: {}", currentLevel, category);
-        
         // 모든 아이템 조회 후 필터링
         List<CharacterItem> allItems = characterItemRepository.findAllByOrderByPriceAsc();
         

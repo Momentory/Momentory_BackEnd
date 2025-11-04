@@ -74,6 +74,7 @@ public enum ErrorStatus implements BaseErrorCode {
 
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "NOTIFICATION4001", "조회할 알림 목록이 없습니다."),
     NOTIFICATION_ALREADY_READ(HttpStatus.BAD_REQUEST, "NOTIFICATION4002", "이미 읽음처리 된 알람입니다."),
+    NOTIFICATION_ACCESS_DENIED(HttpStatus.FORBIDDEN, "NOTIFICATION4003", "해당 알림에 접근할 권한이 없습니다."),
     RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "RESOURCE4001", "존재하지 않는 리소스입니다."),
     // ====== 기타 리소스 ======
     DUPLICATE_RESOURCE(HttpStatus.BAD_REQUEST, "RESOURCE4002", "중복된 리소스입니다."),

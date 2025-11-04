@@ -35,5 +35,10 @@ public interface RouletteRepository extends JpaRepository<Roulette, Long> {
      */
     @Query("SELECT r FROM Roulette r WHERE r.user = :user AND r.earnedPoint = 0 ORDER BY r.createdAt DESC")
     List<Roulette> findIncompleteRoulettesByUser(@Param("user") User user);
+
+    /**
+     * 특정 기간 내 마감되는 미완료 룰렛 조회
+     */
+    List<Roulette> findAllByDeadlineBetweenAndIsCompletedFalse(LocalDateTime start, LocalDateTime end);
 }
 

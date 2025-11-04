@@ -5,6 +5,7 @@ import com.example.momentory.domain.community.dto.PostRequestDto;
 import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.community.repository.PostRepository;
+import com.example.momentory.domain.file.service.S3Service;
 import com.example.momentory.domain.map.entity.Region;
 import com.example.momentory.domain.map.repository.RegionRepository;
 import com.example.momentory.domain.tag.entity.PostTag;
@@ -17,11 +18,13 @@ import com.example.momentory.domain.user.repository.UserRepository;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PostService {
 
     private final PostRepository postRepository;
@@ -30,6 +33,7 @@ public class PostService {
     private final TagRepository tagRepository;
     private final PostTagRepository postTagRepository;
     private final CommunityConverter communityConverter;
+    private final S3Service s3Service;
 
     /**
      * 게시글 생성
@@ -99,6 +103,18 @@ public class PostService {
                     .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
         }
 
+        // 이미지가 변경되는 경우 기존 S3 파일 삭제
+        if (request.getImageName() != null && !request.getImageName().equals(post.getImageName())) {
+            if (post.getImageName() != null && !post.getImageName().isEmpty()) {
+                try {
+                    s3Service.deleteFile(post.getImageName());
+                } catch (Exception e) {
+                    log.error("기존 이미지 S3 삭제 실패 - postId: {}, imageName: {}, 오류: {}",
+                            postId, post.getImageName(), e.getMessage());
+                }
+            }
+        }
+
         // Post 업데이트
         post.updatePost(request.getTitle(), request.getContent(), region,
                 request.getImageUrl(), request.getImageName());
@@ -138,6 +154,18 @@ public class PostService {
             throw new GeneralException(ErrorStatus._FORBIDDEN);
         }
 
+        // S3에서 이미지 삭제
+        if (post.getImageName() != null && !post.getImageName().isEmpty()) {
+            try {
+                s3Service.deleteFile(post.getImageName());
+            } catch (Exception e) {
+                log.error("게시글 이미지 S3 삭제 실패 - postId: {}, imageName: {}, 오류: {}",
+                        postId, post.getImageName(), e.getMessage());
+                // S3 삭제 실패해도 DB에서는 삭제 진행 (로그만 남김)
+            }
+        }
+
         postRepository.delete(post);
+        log.info("게시글 DB 삭제 완료 - postId: {}", postId);
     }
 }

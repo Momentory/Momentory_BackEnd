@@ -146,9 +146,6 @@ public class RouletteService {
         // 보상 포인트 지급
         pointService.addPoint(user, ROULETTE_REWARD, PointActionType.ROULETTE_REWARD);
 
-        log.info("[룰렛 인증 완료] user={}, region={}, reward={}",
-                user.getUserId(), regionName, ROULETTE_REWARD);
-
         return true;
     }
 

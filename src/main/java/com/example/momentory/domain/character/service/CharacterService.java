@@ -8,6 +8,8 @@ import com.example.momentory.domain.character.entity.UserItem;
 import com.example.momentory.domain.character.repository.CharacterRepository;
 import com.example.momentory.domain.character.repository.UserItemRepository;
 import com.example.momentory.domain.character.util.LevelCalculator;
+import com.example.momentory.domain.notification.entity.NotificationType;
+import com.example.momentory.domain.notification.event.NotificationEvent;
 import com.example.momentory.domain.point.entity.PointActionType;
 import com.example.momentory.domain.point.entity.PointHistory;
 import com.example.momentory.domain.point.repository.PointHistoryRepository;
@@ -17,6 +19,7 @@ import com.example.momentory.global.exception.GeneralException;
 import com.example.momentory.global.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +38,7 @@ public class CharacterService {
     private final PointHistoryRepository pointHistoryRepository;
     private final LevelCalculator levelCalculator;
     private final UserService userService;
+    private final ApplicationEventPublisher eventPublisher;
 
     private static final int LEVEL_UP_BONUS = 200;
 
@@ -241,6 +245,15 @@ public class CharacterService {
                     .actionType(PointActionType.LEVELUP)
                     .build();
             pointHistoryRepository.save(levelUpHistory);
+
+            // 레벨업 알림 발송
+            NotificationEvent event = NotificationEvent.builder()
+                    .targetUser(user)
+                    .type(NotificationType.LEVEL_UP)
+                    .message("축하합니다! 레벨 " + newLevel + "로 레벨업했습니다. (+" + LEVEL_UP_BONUS + " 포인트)")
+                    .relatedId(character.getCharacterId())
+                    .build();
+            eventPublisher.publishEvent(event);
         }
     }
 

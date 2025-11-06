@@ -18,7 +18,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -260,5 +262,47 @@ public class UserService {
 
             return true;
         }
+    }
+
+    // 내 팔로워 목록 조회 (나를 팔로우하는 사람들)
+    public List<UserResponseDto.FollowUserDto> getMyFollowers() {
+        User user = getCurrentUser();
+
+        // 나를 팔로우하는 사람들 조회
+        List<Follow> followers = followRepository.findAllByFollowing(user);
+
+        return followers.stream()
+                .map(follow -> {
+                    User followerUser = follow.getFollower();
+                    UserProfile followerProfile = userProfileRepository.findByUser(followerUser).orElse(null);
+
+                    return UserResponseDto.FollowUserDto.builder()
+                            .userId(followerUser.getId())
+                            .nickname(followerUser.getNickname())
+                            .imageUrl(followerProfile != null ? followerProfile.getImageUrl() : null)
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
+    // 내 팔로잉 목록 조회 (내가 팔로우하는 사람들)
+    public List<UserResponseDto.FollowUserDto> getMyFollowings() {
+        User user = getCurrentUser();
+
+        // 내가 팔로우하는 사람들 조회
+        List<Follow> followings = followRepository.findAllByFollower(user);
+
+        return followings.stream()
+                .map(follow -> {
+                    User followingUser = follow.getFollowing();
+                    UserProfile followingProfile = userProfileRepository.findByUser(followingUser).orElse(null);
+
+                    return UserResponseDto.FollowUserDto.builder()
+                            .userId(followingUser.getId())
+                            .nickname(followingUser.getNickname())
+                            .imageUrl(followingProfile != null ? followingProfile.getImageUrl() : null)
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 }

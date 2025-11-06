@@ -70,4 +70,16 @@ public class UserResponseDto {
         private Long followingCount;
         private Boolean isFollowing; // 다른 사용자 조회 시에만 사용 (내 프로필 조회 시 null)
     }
+
+    // 팔로워/팔로잉 목록용 DTO
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class FollowUserDto {
+        private Long userId;
+        private String nickname;
+        private String imageUrl; // 프로필사진 URL만
+    }
 }

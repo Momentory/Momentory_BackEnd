@@ -108,7 +108,8 @@ public class WebSecurityConfig {
                 "http://localhost:3000",
                 "https://www.momentory.store",
                 "http://www.momentory.store",
-                "https://momentory.store"
+                "https://momentory.store",
+                "https://momentoryy.vercel.app"
         );
 
         config.setAllowedOrigins(allowedOrigins);

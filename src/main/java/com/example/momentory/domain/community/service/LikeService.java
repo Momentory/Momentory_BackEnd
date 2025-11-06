@@ -62,14 +62,7 @@ public class LikeService {
     public List<PostResponseDto.PostThumbnailDto> getUserLikedPosts() {
         User user = userService.getCurrentUser();
 
-        // 해당 사용자의 모든 Like 엔티티 조회
-        List<Like> likeList = likeRepository.findAllByUser(user);
-
-        // Post 엔티티만 추출하여 DTO로 변환
-        List<Post> posts = likeList.stream()
-                .map(Like::getPost)
-                .collect(Collectors.toList());
-
-        return communityConverter.toPostThumbnailDtoList(posts);
+        // DB에서 직접 postId와 imageUrl만 조회
+        return likeRepository.findPostThumbnailsByUser(user);
     }
 }

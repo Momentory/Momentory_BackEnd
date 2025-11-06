@@ -1,5 +1,6 @@
 package com.example.momentory.domain.community.repository;
 
+import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.map.entity.Region;
 import com.example.momentory.domain.user.entity.User;
@@ -67,4 +68,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     // 검색 첫 페이지
     @Query("SELECT p FROM Post p WHERE p.title LIKE %:keyword% OR p.content LIKE %:keyword% ORDER BY p.createdAt DESC")
     List<Post> searchPostsOrderByCreatedAtDesc(@Param("keyword") String keyword, Pageable pageable);
+
+    // ===== 썸네일 전용 쿼리 (postId, imageUrl만 조회) =====
+
+    // 특정 사용자가 작성한 게시글의 썸네일 정보만 조회
+    @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
+            "FROM Post p WHERE p.user = :user")
+    List<PostResponseDto.PostThumbnailDto> findThumbnailsByUser(@Param("user") User user);
 }

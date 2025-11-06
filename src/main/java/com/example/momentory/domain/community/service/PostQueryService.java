@@ -179,8 +179,8 @@ public class PostQueryService {
     public List<PostResponseDto.PostThumbnailDto> getMyPosts() {
         User user = userService.getCurrentUser();
 
-        List<Post> posts = postRepository.findAllByUser(user);
-        return communityConverter.toPostThumbnailDtoList(posts);
+        // DB에서 직접 postId와 imageUrl만 조회
+        return postRepository.findThumbnailsByUser(user);
     }
 
     /**
@@ -189,16 +189,8 @@ public class PostQueryService {
     public List<PostResponseDto.PostThumbnailDto> getPostsICommented() {
         User user = userService.getCurrentUser();
 
-        // 해당 사용자가 작성한 모든 댓글 조회
-        List<Comment> comments = commentRepository.findAllByUser(user);
-
-        // 댓글이 달린 게시글만 추출 (중복 제거)
-        List<Post> posts = comments.stream()
-                .map(Comment::getPost)
-                .distinct()
-                .collect(Collectors.toList());
-
-        return communityConverter.toPostThumbnailDtoList(posts);
+        // DB에서 직접 postId와 imageUrl만 조회 (중복 제거)
+        return commentRepository.findPostThumbnailsByUser(user);
     }
 
     /**
@@ -208,7 +200,7 @@ public class PostQueryService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        List<Post> posts = postRepository.findAllByUser(user);
-        return communityConverter.toPostThumbnailDtoList(posts);
+        // DB에서 직접 postId와 imageUrl만 조회
+        return postRepository.findThumbnailsByUser(user);
     }
 }

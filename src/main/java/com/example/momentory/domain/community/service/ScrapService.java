@@ -64,14 +64,7 @@ public class ScrapService {
     public List<PostResponseDto.PostThumbnailDto> getUserScrapList() {
         User user = userService.getCurrentUser();
 
-        // 해당 사용자의 모든 Scrap 엔티티 조회
-        List<Scrap> scrapList = scrapRepository.findAllByUser(user);
-
-        // Post 엔티티만 추출하여 DTO로 변환
-        List<Post> posts = scrapList.stream()
-                .map(Scrap::getPost)
-                .collect(Collectors.toList());
-
-        return communityConverter.toPostThumbnailDtoList(posts);
+        // DB에서 직접 postId와 imageUrl만 조회
+        return scrapRepository.findPostThumbnailsByUser(user);
     }
 }

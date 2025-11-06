@@ -58,10 +58,10 @@ public class ScrapService {
     }
 
     /**
-     * 사용자별 스크랩 목록 조회
+     * 사용자별 스크랩 목록 조회 (postId와 imageUrl만)
      */
     @Transactional(readOnly = true)
-    public List<PostResponseDto.PostDto> getUserScrapList() {
+    public List<PostResponseDto.PostThumbnailDto> getUserScrapList() {
         User user = userService.getCurrentUser();
 
         // 해당 사용자의 모든 Scrap 엔티티 조회
@@ -72,6 +72,6 @@ public class ScrapService {
                 .map(Scrap::getPost)
                 .collect(Collectors.toList());
 
-        return communityConverter.toPostDtoList(posts);
+        return communityConverter.toPostThumbnailDtoList(posts);
     }
 }

@@ -43,6 +43,10 @@ public class UserService {
 
         UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
 
+        // 팔로워 수와 팔로잉 수 조회
+        Long followerCount = followRepository.countByFollowing(user);
+        Long followingCount = followRepository.countByFollower(user);
+
         return UserResponseDto.MyInfoDto.builder()
                 .userId(user.getId())
                 .email(user.getEmail())
@@ -55,27 +59,92 @@ public class UserService {
                 .level(userProfile != null ? userProfile.getLevel() : 0)
                 .imageName(userProfile != null ? userProfile.getImageName() : null)
                 .imageUrl(userProfile != null ? userProfile.getImageUrl() : null)
+                .backgroundImageName(userProfile != null ? userProfile.getBackgroundImageName() : null)
+                .backgroundImageUrl(userProfile != null ? userProfile.getBackgroundImageUrl() : null)
                 .bio(userProfile != null ? userProfile.getBio() : null)
                 .externalLink(userProfile != null ? userProfile.getExternalLink() : null)
+                .followerCount(followerCount)
+                .followingCount(followingCount)
                 .build();
     }
 
-    // 다른 사용자 프로필 조회
-    public UserResponseDto.ProfileDto getUserProfile(Long userId) {
-        User user = userRepository.findById(userId)
+    // 다른 사용자 프로필 조회 (팔로우 여부 포함)
+    public UserResponseDto.ProfileDto getUserProfileWithFollowStatus(Long userId) {
+        User currentUser = getCurrentUser();
+        User targetUser = userRepository.findById(userId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
+        UserProfile userProfile = userProfileRepository.findByUser(targetUser).orElse(null);
+
+        // 팔로워 수와 팔로잉 수 조회
+        Long followerCount = followRepository.countByFollowing(targetUser);
+        Long followingCount = followRepository.countByFollower(targetUser);
+
+        // 팔로우 여부 확인
+        boolean isFollowing = followRepository.existsByFollowerAndFollowing(currentUser, targetUser);
 
         return UserResponseDto.ProfileDto.builder()
-                .userId(user.getId())
-                .nickname(user.getNickname())
+                .userId(targetUser.getId())
+                .nickname(targetUser.getNickname())
                 .gender(userProfile != null ? userProfile.getGender() : null)
                 .point(userProfile != null ? userProfile.getPoint() : 0)
                 .imageName(userProfile != null ? userProfile.getImageName() : null)
                 .imageUrl(userProfile != null ? userProfile.getImageUrl() : null)
+                .backgroundImageName(userProfile != null ? userProfile.getBackgroundImageName() : null)
+                .backgroundImageUrl(userProfile != null ? userProfile.getBackgroundImageUrl() : null)
                 .bio(userProfile != null ? userProfile.getBio() : null)
                 .externalLink(userProfile != null ? userProfile.getExternalLink() : null)
+                .followerCount(followerCount)
+                .followingCount(followingCount)
+                .isFollowing(isFollowing)
+                .build();
+    }
+
+    // 커뮤니티용 - 내 프로필 조회 (간소화)
+    public UserResponseDto.CommunityProfileDto getMyCommunityProfile() {
+        User user = getCurrentUser();
+        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
+
+        // 팔로워 수와 팔로잉 수 조회
+        Long followerCount = followRepository.countByFollowing(user);
+        Long followingCount = followRepository.countByFollower(user);
+
+        return UserResponseDto.CommunityProfileDto.builder()
+                .nickname(user.getNickname())
+                .imageUrl(userProfile != null ? userProfile.getImageUrl() : null)
+                .backgroundImageUrl(userProfile != null ? userProfile.getBackgroundImageUrl() : null)
+                .bio(userProfile != null ? userProfile.getBio() : null)
+                .externalLink(userProfile != null ? userProfile.getExternalLink() : null)
+                .followerCount(followerCount)
+                .followingCount(followingCount)
+                .isFollowing(null) // 내 프로필이므로 null
+                .build();
+    }
+
+    // 커뮤니티용 - 다른 사용자 프로필 조회 (간소화, 팔로우 여부 포함)
+    public UserResponseDto.CommunityProfileDto getUserCommunityProfile(Long userId) {
+        User currentUser = getCurrentUser();
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        UserProfile userProfile = userProfileRepository.findByUser(targetUser).orElse(null);
+
+        // 팔로워 수와 팔로잉 수 조회
+        Long followerCount = followRepository.countByFollowing(targetUser);
+        Long followingCount = followRepository.countByFollower(targetUser);
+
+        // 팔로우 여부 확인
+        boolean isFollowing = followRepository.existsByFollowerAndFollowing(currentUser, targetUser);
+
+        return UserResponseDto.CommunityProfileDto.builder()
+                .nickname(targetUser.getNickname())
+                .imageUrl(userProfile != null ? userProfile.getImageUrl() : null)
+                .backgroundImageUrl(userProfile != null ? userProfile.getBackgroundImageUrl() : null)
+                .bio(userProfile != null ? userProfile.getBio() : null)
+                .externalLink(userProfile != null ? userProfile.getExternalLink() : null)
+                .followerCount(followerCount)
+                .followingCount(followingCount)
+                .isFollowing(isFollowing)
                 .build();
     }
 
@@ -94,11 +163,17 @@ public class UserService {
                 userProfile.getGender(),
                 request.getImageName() != null ? request.getImageName() : userProfile.getImageName(),
                 request.getImageUrl() != null ? request.getImageUrl() : userProfile.getImageUrl(),
+                request.getBackgroundImageName() != null ? request.getBackgroundImageName() : userProfile.getBackgroundImageName(),
+                request.getBackgroundImageUrl() != null ? request.getBackgroundImageUrl() : userProfile.getBackgroundImageUrl(),
                 request.getBio() != null ? request.getBio() : userProfile.getBio(),
                 request.getExternalLink() != null ? request.getExternalLink() : userProfile.getExternalLink()
         );
 
         userProfileRepository.save(userProfile);
+
+        // 팔로워 수와 팔로잉 수 조회
+        Long followerCount = followRepository.countByFollowing(user);
+        Long followingCount = followRepository.countByFollower(user);
 
         return UserResponseDto.MyInfoDto.builder()
                 .userId(user.getId())
@@ -112,8 +187,12 @@ public class UserService {
                 .level(userProfile.getLevel())
                 .imageName(userProfile.getImageName())
                 .imageUrl(userProfile.getImageUrl())
+                .backgroundImageName(userProfile.getBackgroundImageName())
+                .backgroundImageUrl(userProfile.getBackgroundImageUrl())
                 .bio(userProfile.getBio())
                 .externalLink(userProfile.getExternalLink())
+                .followerCount(followerCount)
+                .followingCount(followingCount)
                 .build();
     }
 

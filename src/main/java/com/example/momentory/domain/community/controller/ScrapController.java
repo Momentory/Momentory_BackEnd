@@ -28,8 +28,8 @@ public class ScrapController {
     }
 
     @GetMapping("/users/me/scraps")
-    @Operation(summary = "내가 스크랩한 게시글 조회", description = "현재 인증된 사용자가 스크랩한 게시글 목록을 조회합니다.")
-    public ApiResponse<List<PostResponseDto.PostDto>> getUserScraps() {
+    @Operation(summary = "내가 스크랩한 게시글 조회", description = "현재 인증된 사용자가 스크랩한 게시글 목록 조회 (postId, imageUrl만 반환).")
+    public ApiResponse<List<PostResponseDto.PostThumbnailDto>> getUserScraps() {
         return ApiResponse.onSuccess(scrapService.getUserScrapList());
     }
 }

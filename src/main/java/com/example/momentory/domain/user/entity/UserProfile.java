@@ -35,6 +35,10 @@ public class UserProfile extends BaseEntity {
     private String imageName;
     private String imageUrl;
 
+    // 배경 이미지
+    private String backgroundImageName;
+    private String backgroundImageUrl;
+
     private String bio;
     private String externalLink;
 
@@ -43,12 +47,14 @@ public class UserProfile extends BaseEntity {
         this.user = user;
     }
 
-    public void updateProfile(String nickname, LocalDate birth, Gender gender, String imageName, String imageUrl, String bio, String externalLink) {
+    public void updateProfile(String nickname, LocalDate birth, Gender gender, String imageName, String imageUrl, String backgroundImageName, String backgroundImageUrl, String bio, String externalLink) {
         if (nickname != null) this.nickname = nickname;
         if (birth != null) this.birth = birth;
         if (gender != null) this.gender = gender;
         if (imageName != null) this.imageName = imageName;
         if (imageUrl != null) this.imageUrl = imageUrl;
+        if (backgroundImageName != null) this.backgroundImageName = backgroundImageName;
+        if (backgroundImageUrl != null) this.backgroundImageUrl = backgroundImageUrl;
         if (bio != null) this.bio = bio;
         if (externalLink != null) this.externalLink = externalLink;
     }
@@ -60,6 +66,8 @@ public class UserProfile extends BaseEntity {
     public void deactivateUserProfile(){
         this.imageName = null;
         this.imageUrl = null;
+        this.backgroundImageName = null;
+        this.backgroundImageUrl = null;
         this.externalLink = null;
         this.bio = null;
     }

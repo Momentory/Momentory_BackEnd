@@ -1,5 +1,7 @@
 package com.example.momentory.domain.community.service;
 
+import com.example.momentory.domain.community.converter.CommunityConverter;
+import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.entity.Like;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.community.repository.LikeRepository;
@@ -12,7 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,6 +25,7 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final UserService userService;
+    private final CommunityConverter communityConverter;
 
     /**
      * 좋아요 토글 (설정/취소)
@@ -48,5 +53,23 @@ public class LikeService {
             post.increaseLikeCount();
             return true;
         }
+    }
+
+    /**
+     * 사용자가 좋아요한 게시글 목록 조회 (postId와 imageUrl만)
+     */
+    @Transactional(readOnly = true)
+    public List<PostResponseDto.PostThumbnailDto> getUserLikedPosts() {
+        User user = userService.getCurrentUser();
+
+        // 해당 사용자의 모든 Like 엔티티 조회
+        List<Like> likeList = likeRepository.findAllByUser(user);
+
+        // Post 엔티티만 추출하여 DTO로 변환
+        List<Post> posts = likeList.stream()
+                .map(Like::getPost)
+                .collect(Collectors.toList());
+
+        return communityConverter.toPostThumbnailDtoList(posts);
     }
 }

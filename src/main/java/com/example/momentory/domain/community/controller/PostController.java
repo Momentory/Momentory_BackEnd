@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/community/posts")
@@ -62,6 +63,20 @@ public class PostController {
             @RequestParam(defaultValue = "20") Integer size) {
         PostRequestDto.PostCursorRequest req = new PostRequestDto.PostCursorRequest(cursor, size);
         return ApiResponse.onSuccess(postQueryService.getPostsByTag(tagName, req));
+    }
+
+    @GetMapping("/tags/filter")
+    @Operation(summary = "다중 태그 필터링", description = "여러 태그로 게시글을 필터링합니다. (OR 조건)")
+    public ApiResponse<PostResponseDto.PostCursorResponse> getPostsByTags(
+            @RequestParam List<String> tags,
+            @RequestParam(required = false) LocalDateTime cursor,
+            @RequestParam(defaultValue = "20") Integer size) {
+        PostRequestDto.PostTagFilterRequest req = PostRequestDto.PostTagFilterRequest.builder()
+                .tags(tags)
+                .cursor(cursor)
+                .size(size)
+                .build();
+        return ApiResponse.onSuccess(postQueryService.getPostsByTags(req));
     }
 
     @GetMapping("/search")

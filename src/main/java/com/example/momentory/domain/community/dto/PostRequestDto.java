@@ -45,4 +45,15 @@ public class PostRequestDto {
         private LocalDateTime cursor; // 마지막으로 조회한 게시글의 createdAt
         private Integer size; // 조회할 게시글 개수
     }
+
+    @Getter
+    @Setter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PostTagFilterRequest {
+        private List<String> tags; // 필터링할 태그 리스트
+        private LocalDateTime cursor; // 마지막으로 조회한 게시글의 createdAt
+        private Integer size; // 조회할 게시글 개수
+    }
 }

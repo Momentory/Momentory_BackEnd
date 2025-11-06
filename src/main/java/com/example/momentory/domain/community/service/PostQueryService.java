@@ -199,4 +199,43 @@ public class PostQueryService {
 
         return communityConverter.toPostDtoList(posts);
     }
+
+    /**
+     * 다중 태그로 게시글 필터링 조회 (커서 페이지네이션, OR 조건)
+     */
+    public PostResponseDto.PostCursorResponse getPostsByTags(PostRequestDto.PostTagFilterRequest request) {
+        // 태그 리스트가 비어있으면 전체 게시글 조회
+        if (request.getTags() == null || request.getTags().isEmpty()) {
+            PostRequestDto.PostCursorRequest cursorRequest = new PostRequestDto.PostCursorRequest(
+                    request.getCursor(), request.getSize()
+            );
+            return getAllPosts(cursorRequest);
+        }
+
+        int size = request.getSize() != null ? request.getSize() : 20;
+        Pageable pageable = PageRequest.of(0, size + 1);
+
+        List<Post> posts;
+        if (request.getCursor() == null) {
+            // 첫 페이지
+            posts = postRepository.findAllByTagNamesOrderByCreatedAtDesc(request.getTags(), pageable);
+        } else {
+            // 커서 이후 데이터
+            posts = postRepository.findAllByTagNamesWithCursor(request.getTags(), request.getCursor(), pageable);
+        }
+
+        boolean hasNext = posts.size() > size;
+        if (hasNext) {
+            posts = posts.subList(0, size);
+        }
+
+        LocalDateTime nextCursor = hasNext && !posts.isEmpty() ? posts.get(posts.size() - 1).getCreatedAt() : null;
+        List<PostResponseDto.PostDto> postDtos = communityConverter.toPostDtoList(posts);
+
+        return PostResponseDto.PostCursorResponse.builder()
+                .posts(postDtos)
+                .nextCursor(nextCursor)
+                .hasNext(hasNext)
+                .build();
+    }
 }

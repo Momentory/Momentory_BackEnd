@@ -29,6 +29,7 @@ public class PostResponseDto {
         private List<String> tags;
         private int likeCount;
         private int commentCount;
+        private boolean isScrapped; // 현재 사용자의 스크랩 여부
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
     }
@@ -40,6 +41,16 @@ public class PostResponseDto {
     public static class PostSimpleDto {
         private Long postId;
         private String title;
+    }
+
+    // 게시글 썸네일용 DTO (postId와 imageUrl만)
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PostThumbnailDto {
+        private Long postId;
+        private String imageUrl;
     }
 
     @Getter

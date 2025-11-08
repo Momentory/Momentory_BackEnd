@@ -58,20 +58,13 @@ public class ScrapService {
     }
 
     /**
-     * 사용자별 스크랩 목록 조회
+     * 사용자별 스크랩 목록 조회 (postId와 imageUrl만)
      */
     @Transactional(readOnly = true)
-    public List<PostResponseDto.PostDto> getUserScrapList() {
+    public List<PostResponseDto.PostThumbnailDto> getUserScrapList() {
         User user = userService.getCurrentUser();
 
-        // 해당 사용자의 모든 Scrap 엔티티 조회
-        List<Scrap> scrapList = scrapRepository.findAllByUser(user);
-
-        // Post 엔티티만 추출하여 DTO로 변환
-        List<Post> posts = scrapList.stream()
-                .map(Scrap::getPost)
-                .collect(Collectors.toList());
-
-        return communityConverter.toPostDtoList(posts);
+        // DB에서 직접 postId와 imageUrl만 조회
+        return scrapRepository.findPostThumbnailsByUser(user);
     }
 }

@@ -96,13 +96,13 @@ public class CulturalSpotService {
                         String name = spot.get("name");
                         String normalized = normalizeName(name);
 
-                        // ① 사전 매핑 테이블에 있으면 강제 교정
+                        // 사전 매핑 테이블에 있으면 강제 교정
                         if (KNOWN_NAME_MAP.containsKey(name)) {
                             spot.put("name", KNOWN_NAME_MAP.get(name));
                             return spot;
                         }
 
-                        // ② 유사도 기반 매칭
+                        // 유사도 기반 매칭
                         STAMP_SPOTS.stream()
                                 .filter(stamp -> similarity(normalizeName(stamp), normalized) >= 0.75)
                                 .findFirst()

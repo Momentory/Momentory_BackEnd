@@ -27,8 +27,6 @@ public class MapQueryService {
     private final RegionRepository regionRepository;
     private final UserRegionColorService userRegionColorService;
     private final UserService userService;
-
-    // ========== 전체 지도용 메서드 ==========
     
     /**
      * 전체 지도용: 특정 지역의 PUBLIC 사진들만 조회 (사용자 상관없이)
@@ -96,8 +94,6 @@ public class MapQueryService {
         
         return resultMap;
     }
-
-    // ========== 나의 지도용 메서드 ==========
     
     /**
      * 나의 지도용: 특정 지역의 특정 사용자 사진들 조회 (visibility 상관없이)

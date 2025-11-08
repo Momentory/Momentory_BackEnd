@@ -5,6 +5,7 @@ import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.service.LikeService;
 import com.example.momentory.domain.community.service.PostQueryService;
 import com.example.momentory.domain.community.service.PostService;
+import com.example.momentory.domain.community.service.ScrapService;
 import com.example.momentory.global.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +24,7 @@ public class PostController {
     private final PostService postService;
     private final LikeService likeService;
     private final PostQueryService postQueryService;
+    private final ScrapService scrapService;
 
     @PostMapping
     @Operation(summary = "게시글 생성", description = "새로운 게시글을 작성합니다.")
@@ -112,4 +114,14 @@ public class PostController {
                         ? "게시글에 좋아요를 설정했습니다." : "게시글의 좋아요를 취소했습니다."
         );
     }
+
+    @PostMapping("/posts/{postId}/scrap")
+    @Operation(summary = "게시글 스크랩 토글", description = "게시글을 스크랩 또는 취소합니다.")
+    public ApiResponse<String> toggleScrap(@PathVariable Long postId) {
+        return ApiResponse.onSuccess(
+                scrapService.toggleScrap(postId)
+                        ? "게시글을 스크랩했습니다." : "게시글 스크랩을 취소했습니다."
+        );
+    }
+
 }

@@ -31,6 +31,7 @@ public class PostQueryService {
 
     private final PostRepository postRepository;
     private final UserService userService;
+    private final UserRepository userRepository;
     private final RegionRepository regionRepository;
     private final CommentRepository commentRepository;
     private final CommunityConverter communityConverter;
@@ -173,31 +174,34 @@ public class PostQueryService {
     }
 
     /**
-     * 내가 쓴 글 조회
+     * 내가 쓴 글 조회 (postId와 imageUrl만)
      */
-    public List<PostResponseDto.PostDto> getMyPosts() {
+    public List<PostResponseDto.PostThumbnailDto> getMyPosts() {
         User user = userService.getCurrentUser();
 
-        List<Post> posts = postRepository.findAllByUser(user);
-        return communityConverter.toPostDtoList(posts);
+        // DB에서 직접 postId와 imageUrl만 조회
+        return postRepository.findThumbnailsByUser(user);
     }
 
     /**
-     * 내가 댓글 단 글 조회
+     * 내가 댓글 단 글 조회 (postId와 imageUrl만)
      */
-    public List<PostResponseDto.PostDto> getPostsICommented() {
+    public List<PostResponseDto.PostThumbnailDto> getPostsICommented() {
         User user = userService.getCurrentUser();
 
-        // 해당 사용자가 작성한 모든 댓글 조회
-        List<Comment> comments = commentRepository.findAllByUser(user);
+        // DB에서 직접 postId와 imageUrl만 조회 (중복 제거)
+        return commentRepository.findPostThumbnailsByUser(user);
+    }
 
-        // 댓글이 달린 게시글만 추출 (중복 제거)
-        List<Post> posts = comments.stream()
-                .map(Comment::getPost)
-                .distinct()
-                .collect(Collectors.toList());
+    /**
+     * 특정 사용자가 쓴 글 조회 (postId와 imageUrl만)
+     */
+    public List<PostResponseDto.PostThumbnailDto> getUserPosts(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        return communityConverter.toPostDtoList(posts);
+        // DB에서 직접 postId와 imageUrl만 조회
+        return postRepository.findThumbnailsByUser(user);
     }
 
     /**

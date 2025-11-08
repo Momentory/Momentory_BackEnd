@@ -8,6 +8,8 @@ import com.example.momentory.domain.point.entity.PointHistory;
 import com.example.momentory.domain.point.repository.PointHistoryRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.service.UserService;
+import com.example.momentory.global.exception.GeneralException;
+import com.example.momentory.global.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -56,7 +58,7 @@ public class PointService {
      */
     @Transactional
     public void addPoint(User user, int amount, PointActionType actionType) {
-        if (amount <= 0) throw new IllegalArgumentException("amount는 0보다 커야 합니다.");
+        if (amount <= 0) throw new GeneralException(ErrorStatus.INVALID_INPUT);
 
         if (isDailyLimitedAction(actionType)) {
             LocalDateTime startOfDay = LocalDateTime.now().toLocalDate().atStartOfDay();
@@ -100,10 +102,10 @@ public class PointService {
      */
     @Transactional
     public void subtractPoint(User user, int amount, PointActionType actionType) {
-        if (amount <= 0) throw new IllegalArgumentException("amount는 0보다 커야 합니다.");
+        if (amount <= 0) throw new GeneralException(ErrorStatus.INVALID_INPUT);
 
         if (user.getProfile().getPoint() < amount) {
-            throw new IllegalArgumentException("포인트가 부족합니다.");
+            throw new GeneralException(ErrorStatus.INSUFFICIENT_POINTS);
         }
 
         // 현재 포인트 차감

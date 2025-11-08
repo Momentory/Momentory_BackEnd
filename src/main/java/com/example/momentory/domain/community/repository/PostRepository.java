@@ -75,4 +75,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
             "FROM Post p WHERE p.user = :user")
     List<PostResponseDto.PostThumbnailDto> findThumbnailsByUser(@Param("user") User user);
+
+    // ===== 다중 태그 필터링 (OR 조건) =====
+
+    // 다중 태그 필터링 커서 페이지네이션
+    @Query("SELECT DISTINCT p FROM Post p JOIN p.postTags pt JOIN pt.tag t WHERE t.name IN :tagNames AND p.createdAt < :cursor ORDER BY p.createdAt DESC")
+    List<Post> findAllByTagNamesWithCursor(@Param("tagNames") List<String> tagNames, @Param("cursor") LocalDateTime cursor, Pageable pageable);
+
+    // 다중 태그 필터링 첫 페이지
+    @Query("SELECT DISTINCT p FROM Post p JOIN p.postTags pt JOIN pt.tag t WHERE t.name IN :tagNames ORDER BY p.createdAt DESC")
+    List<Post> findAllByTagNamesOrderByCreatedAtDesc(@Param("tagNames") List<String> tagNames, Pageable pageable);
 }

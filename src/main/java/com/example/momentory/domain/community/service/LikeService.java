@@ -4,6 +4,8 @@ import com.example.momentory.domain.community.entity.Like;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.community.repository.LikeRepository;
 import com.example.momentory.domain.community.repository.PostRepository;
+import com.example.momentory.domain.point.entity.PointActionType;
+import com.example.momentory.domain.point.service.PointService;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
@@ -21,31 +23,44 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final PostRepository postRepository;
     private final UserService userService;
+    private final PointService pointService;
 
     /**
      * 좋아요 토글 (설정/취소)
+     * @param postId 게시글 ID
+     * @return true: 좋아요 추가됨, false: 좋아요 취소됨
      */
     @Transactional
     public boolean toggleLike(Long postId) {
-        User user = userService.getCurrentUser();
+        User currentUser = userService.getCurrentUser();
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
 
-        Optional<Like> existingLike = likeRepository.findByUserAndPost(user, post);
+        Optional<Like> existingLike = likeRepository.findByUserAndPost(currentUser, post);
 
         if (existingLike.isPresent()) {
+            // 좋아요 취소 (포인트 회수는 하지 않음)
             likeRepository.delete(existingLike.get());
             post.decreaseLikeCount();
             return false;
         } else {
+            // 좋아요 추가
             Like newLike = Like.builder()
-                    .user(user)
+                    .user(currentUser)
                     .post(post)
                     .build();
 
             likeRepository.save(newLike);
             post.increaseLikeCount();
+
+            // 게시글 작성자에게 포인트 지급 (본인 게시글 좋아요는 제외, 일일 50회 제한)
+            User postOwner = post.getUser();
+            if (!postOwner.getUserId().equals(currentUser.getUserId())) {
+                int likePoints = pointService.getPointAmount(PointActionType.RECEIVE_LIKE);
+                pointService.addPoint(postOwner, likePoints, PointActionType.RECEIVE_LIKE);
+            }
+
             return true;
         }
     }

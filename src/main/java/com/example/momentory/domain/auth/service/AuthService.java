@@ -241,6 +241,8 @@ public class AuthService {
                         dto.getGender(),
                         dto.getImageName(),
                         dto.getImageUrl(),
+                        null, // backgroundImageName - 회원가입 시에는 설정하지 않음
+                        null, // backgroundImageUrl - 회원가입 시에는 설정하지 않음
                         dto.getBio(),
                         dto.getExternalLink()
                 );

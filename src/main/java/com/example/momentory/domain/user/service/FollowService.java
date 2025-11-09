@@ -24,7 +24,7 @@ public class FollowService {
     private final PointService pointService;
 
     /**
-     * 팔로우 토글 (설정/취소)
+     * 팔로우 토글 (설정/취소) - Soft Delete 방식
      * @param targetUserId 팔로우할 대상 사용자 ID
      * @return true: 팔로우 추가됨, false: 팔로우 취소됨
      */
@@ -41,17 +41,29 @@ public class FollowService {
             throw new GeneralException(ErrorStatus.CANNOT_FOLLOW_YOURSELF);
         }
 
+        // 기존 팔로우 찾기 (활성/비활성 무관)
         Optional<Follow> existingFollow = followRepository.findByFollowerAndFollowing(follower, following);
 
         if (existingFollow.isPresent()) {
-            // 팔로우 취소 (포인트 회수는 하지 않음)
-            followRepository.delete(existingFollow.get());
-            return false;
+            Follow follow = existingFollow.get();
+
+            if (follow.isActive()) {
+                // 활성화된 팔로우 -> 비활성화 (언팔로우)
+                follow.deactivate();
+                return false;
+            } else {
+                // 비활성화된 팔로우 -> 재활성화
+                follow.activate();
+
+                // ⚠️ 중요: 재활성화 시에는 포인트 지급 안 함 (중복 지급 방지)
+                return true;
+            }
         } else {
-            // 팔로우 추가
+            // 새로운 팔로우 생성
             Follow newFollow = Follow.builder()
                     .follower(follower)
                     .following(following)
+                    .isActive(true)
                     .build();
 
             followRepository.save(newFollow);
@@ -65,7 +77,7 @@ public class FollowService {
     }
 
     /**
-     * 특정 사용자를 팔로우하고 있는지 확인
+     * 특정 사용자를 팔로우하고 있는지 확인 (활성화된 팔로우만)
      */
     @Transactional(readOnly = true)
     public boolean isFollowing(Long targetUserId) {
@@ -73,6 +85,6 @@ public class FollowService {
         User following = userRepository.findById(targetUserId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
 
-        return followRepository.findByFollowerAndFollowing(follower, following).isPresent();
+        return followRepository.findByFollowerAndFollowingAndIsActiveTrue(follower, following).isPresent();
     }
 }

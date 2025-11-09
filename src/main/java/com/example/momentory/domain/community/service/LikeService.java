@@ -26,7 +26,7 @@ public class LikeService {
     private final PointService pointService;
 
     /**
-     * 좋아요 토글 (설정/취소)
+     * 좋아요 토글 (설정/취소) - Soft Delete 방식
      * @param postId 게시글 ID
      * @return true: 좋아요 추가됨, false: 좋아요 취소됨
      */
@@ -37,24 +37,37 @@ public class LikeService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
 
+        // 기존 좋아요 찾기 (활성/비활성 무관)
         Optional<Like> existingLike = likeRepository.findByUserAndPost(currentUser, post);
 
         if (existingLike.isPresent()) {
-            // 좋아요 취소 (포인트 회수는 하지 않음)
-            likeRepository.delete(existingLike.get());
-            post.decreaseLikeCount();
-            return false;
+            Like like = existingLike.get();
+
+            if (like.isActive()) {
+                // 활성화된 좋아요 -> 비활성화 (취소)
+                like.deactivate();
+                post.decreaseLikeCount();
+                return false;
+            } else {
+                // 비활성화된 좋아요 -> 재활성화
+                like.activate();
+                post.increaseLikeCount();
+
+                // ⚠️ 중요: 재활성화 시에는 포인트 지급 안 함 (중복 지급 방지)
+                return true;
+            }
         } else {
-            // 좋아요 추가
+            // 새로운 좋아요 생성
             Like newLike = Like.builder()
                     .user(currentUser)
                     .post(post)
+                    .isActive(true)
                     .build();
 
             likeRepository.save(newLike);
             post.increaseLikeCount();
 
-            // 게시글 작성자에게 포인트 지급 (본인 게시글 좋아요는 제외, 일일 50회 제한)
+            // 게시글 작성자에게 포인트 지급 (본인 게시글 제외, 일일 50회 제한)
             User postOwner = post.getUser();
             if (!postOwner.getUserId().equals(currentUser.getUserId())) {
                 int likePoints = pointService.getPointAmount(PointActionType.RECEIVE_LIKE);

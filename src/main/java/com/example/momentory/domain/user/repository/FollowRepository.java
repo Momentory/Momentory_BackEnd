@@ -10,6 +10,9 @@ import java.util.Optional;
 @Repository
 public interface FollowRepository extends JpaRepository<Follow, Long> {
 
-    // 특정 사용자가 다른 사용자를 팔로우하고 있는지 확인
+    // 특정 사용자가 다른 사용자를 팔로우하고 있는지 확인 (활성/비활성 무관)
     Optional<Follow> findByFollowerAndFollowing(User follower, User following);
+
+    // 활성화된 팔로우만 찾기
+    Optional<Follow> findByFollowerAndFollowingAndIsActiveTrue(User follower, User following);
 }

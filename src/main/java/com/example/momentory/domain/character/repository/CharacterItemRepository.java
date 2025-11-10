@@ -13,5 +13,7 @@ public interface CharacterItemRepository extends JpaRepository<CharacterItem, Lo
     List<CharacterItem> findByCategory(ItemCategory category);
 
     List<CharacterItem> findAllByOrderByPriceAsc();
+
+    List<CharacterItem> findTop3ByOrderByCreatedAtDesc();
 }
 

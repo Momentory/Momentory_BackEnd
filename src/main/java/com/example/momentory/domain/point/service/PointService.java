@@ -1,6 +1,8 @@
 package com.example.momentory.domain.point.service;
 
 import com.example.momentory.domain.character.dto.CharacterDto;
+import com.example.momentory.domain.character.entity.Character;
+import com.example.momentory.domain.character.repository.CharacterRepository;
 import com.example.momentory.domain.character.service.CharacterService;
 import com.example.momentory.domain.point.dto.PointResponse;
 import com.example.momentory.domain.point.entity.PointActionType;
@@ -25,7 +27,7 @@ public class PointService {
 
     private final UserService userService;
     private final PointHistoryRepository pointHistoryRepository;
-    private final CharacterService characterService;
+    private final CharacterRepository characterRepository;
 
     // 포인트 액션별 포인트 값
     private static final int SIGNUP_POINTS = 500;          // 회원가입 웰컴 포인트
@@ -44,7 +46,11 @@ public class PointService {
     public PointResponse.CharacterPoint getUserPoint(){
         User user = userService.getCurrentUser();
         int totalPoints = pointHistoryRepository.calculateTotalPointsByUser(user);
-        int level = characterService.getCurrentCharacter().getLevel();
+        // CharacterRepository로 직접 조회
+        Character currentCharacter = characterRepository.findCurrentCharacterByOwner(user)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.CURRENT_CHARACTER_NOT_FOUND));
+
+        int level = currentCharacter.getLevel();
         PointResponse.UserPoint userPoint = new PointResponse.UserPoint(user.getProfile().getPoint(), totalPoints);
         return PointResponse.CharacterPoint.builder()
                 .level(level)
@@ -91,10 +97,10 @@ public class PointService {
                 .build();
         pointHistoryRepository.save(history);
 
-        // 캐릭터 레벨 자동 갱신
-        characterService.updateCharacterLevel(
-                characterService.getCurrentCharacter(), user
-        );
+//        // 캐릭터 레벨 자동 갱신
+//        characterService.updateCharacterLevel(
+//                characterService.getCurrentCharacter(), user
+//        );
     }
 
     public void subtractPoint(int amount, PointActionType actionType) {

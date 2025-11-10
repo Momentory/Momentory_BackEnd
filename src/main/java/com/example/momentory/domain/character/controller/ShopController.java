@@ -47,4 +47,10 @@ public class ShopController {
         ItemDto.Response response = itemService.buyItem(itemId);
         return ApiResponse.onSuccess(response);
     }
+
+    @GetMapping("/recent-items")
+    @Operation(summary = "최근 추가된 아이템 목록 조회", description = "새롭게 추가된 아이템 목록 3가지를 조회합니다.")
+    public ApiResponse<List<ItemDto.ShopItemResponse>> getRecentAddItems() {
+        return ApiResponse.onSuccess(itemService.recentItems());
+    }
 }

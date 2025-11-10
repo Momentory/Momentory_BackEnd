@@ -148,4 +148,9 @@ public class ItemService {
 
         return characterConverter.toItemResponse(savedUserItem);
     }
+
+    public List<ItemDto.ShopItemResponse> recentItems(){
+        List<CharacterItem> recentItems = characterItemRepository.findTop3ByOrderByCreatedAtDesc();
+        return characterConverter.toShopItemResponseList(recentItems, false);
+    }
 }

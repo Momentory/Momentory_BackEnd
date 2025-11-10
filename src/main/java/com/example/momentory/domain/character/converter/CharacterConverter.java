@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -108,6 +109,12 @@ public class CharacterConverter {
                 .unlockLevel(item.getUnlockLevel())
                 .isOwned(isOwned)
                 .build();
+    }
+
+    public List<ItemDto.ShopItemResponse> toShopItemResponseList(List<CharacterItem> items, boolean isOwned) {
+        return items.stream()
+                .map(item -> toShopItemResponse(item, isOwned))
+                .toList();
     }
 
     public ItemDto.MyItemResponse toMyItemResponse(UserItem userItem) {

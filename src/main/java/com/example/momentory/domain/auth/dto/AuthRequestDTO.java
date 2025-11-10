@@ -1,6 +1,6 @@
 package com.example.momentory.domain.auth.dto;
 
-import com.example.momentory.domain.character.entity.CharacterType;
+import com.example.momentory.domain.character.entity.status.CharacterType;
 import com.example.momentory.domain.user.entity.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

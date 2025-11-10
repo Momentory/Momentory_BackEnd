@@ -1,7 +1,7 @@
 package com.example.momentory.domain.character.controller;
 
 import com.example.momentory.domain.character.dto.ItemDto;
-import com.example.momentory.domain.character.entity.ItemCategory;
+import com.example.momentory.domain.character.entity.status.ItemCategory;
 import com.example.momentory.domain.character.service.ItemService;
 import com.example.momentory.global.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;

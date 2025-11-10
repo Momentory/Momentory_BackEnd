@@ -3,7 +3,9 @@ package com.example.momentory.domain.character.service;
 import com.example.momentory.domain.character.converter.CharacterConverter;
 import com.example.momentory.domain.character.dto.AdminItemDto;
 import com.example.momentory.domain.character.entity.CharacterItem;
+import com.example.momentory.domain.character.entity.Event;
 import com.example.momentory.domain.character.repository.CharacterItemRepository;
+import com.example.momentory.domain.character.repository.EventRepository;
 import com.example.momentory.domain.file.service.S3Service;
 import com.example.momentory.global.exception.GeneralException;
 import com.example.momentory.global.code.status.ErrorStatus;
@@ -22,11 +24,20 @@ import java.util.stream.Collectors;
 public class AdminItemService {
 
     private final CharacterItemRepository characterItemRepository;
+    private final EventRepository eventRepository;
     private final CharacterConverter characterConverter;
     private final S3Service s3Service;
 
     @Transactional
     public AdminItemDto.Response createItem(AdminItemDto.CreateRequest request) {
+        Event event = null;
+
+        // 이벤트 ID가 제공된 경우 이벤트 조회 및 검증
+        if (request.getEventId() != null) {
+            event = eventRepository.findById(request.getEventId())
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.EVENT_NOT_FOUND));
+        }
+
         CharacterItem item = CharacterItem.builder()
                 .name(request.getName())
                 .category(request.getCategory())
@@ -34,6 +45,8 @@ public class AdminItemService {
                 .imageUrl(request.getImageUrl())
                 .price(request.getPrice())
                 .unlockLevel(request.getUnlockLevel())
+                .isLimited(request.isLimited())
+                .event(event)
                 .build();
 
         CharacterItem savedItem = characterItemRepository.save(item);
@@ -69,14 +82,23 @@ public class AdminItemService {
             }
         }
 
+        // 이벤트 업데이트
+        Event event = null;
+        if (request.getEventId() != null) {
+            event = eventRepository.findById(request.getEventId())
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.EVENT_NOT_FOUND));
+        }
+
         // 아이템 정보 업데이트 (감사 시간 필드는 JPA Auditing으로 자동 처리)
-        item.update(
+        item.updateWithEvent(
                 request.getName(),
                 request.getCategory(),
                 request.getImageName(),
                 request.getImageUrl(),
                 request.getPrice(),
-                request.getUnlockLevel()
+                request.getUnlockLevel(),
+                request.isLimited(),
+                event
         );
 
         return characterConverter.toAdminItemResponse(item);

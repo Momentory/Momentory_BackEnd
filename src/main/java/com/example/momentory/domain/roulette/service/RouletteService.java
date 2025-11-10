@@ -36,8 +36,6 @@ public class RouletteService {
     private final UserService userService;
     private final PointService pointService;
 
-    private static final int ROULETTE_COST = 200;  // 룰렛 실행 비용
-    private static final int ROULETTE_REWARD = 500;  // 룰렛 인증 보상
     private static final int MAX_REGIONS = 5;  // 룰렛에 표시할 최대 지역 수
 
     /**
@@ -87,8 +85,10 @@ public class RouletteService {
     public RouletteResponseDto.SpinResult spinRoulette(RouletteRequestDto.SpinRoulette request) {
         User user = userService.getCurrentUser();
 
+        int rouletteCost = pointService.getPointAmount(PointActionType.ROULETTE);
+
         // 포인트 부족 체크
-        if (user.getProfile().getPoint() < ROULETTE_COST) {
+        if (user.getProfile().getPoint() < rouletteCost) {
             throw new GeneralException(ErrorStatus.INSUFFICIENT_POINTS);
         }
 
@@ -97,14 +97,14 @@ public class RouletteService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.REGION_NOT_FOUND));
 
         // 포인트 차감
-        pointService.subtractPoint(ROULETTE_COST, PointActionType.ROULETTE);
+        pointService.subtractPoint(rouletteCost, PointActionType.ROULETTE);
 
         // 룰렛 생성 및 저장
         Roulette roulette = Roulette.builder()
                 .user(user)
                 .type(RouletteType.TRAVEL)
                 .reward(request.getSelectedRegion())
-                .usedPoint(ROULETTE_COST)
+                .usedPoint(rouletteCost)
                 .earnedPoint(0)  // 아직 인증 안 함
                 .build();
 
@@ -116,7 +116,7 @@ public class RouletteService {
         return RouletteResponseDto.SpinResult.builder()
                 .rouletteId(savedRoulette.getRouletteId())
                 .reward(savedRoulette.getReward())
-                .usedPoint(ROULETTE_COST)
+                .usedPoint(rouletteCost)
                 .remainingPoint(user.getProfile().getPoint())
                 .deadline(deadline)
                 .build();
@@ -140,11 +140,13 @@ public class RouletteService {
 
         Roulette roulette = activeRouletteOpt.get();
 
+        int rouletteReward = pointService.getPointAmount(PointActionType.ROULETTE_REWARD);
+
         // 룰렛 인증 완료 처리
-        roulette.completeRouletteReward(ROULETTE_REWARD);
+        roulette.completeRouletteReward(rouletteReward);
 
         // 보상 포인트 지급
-        pointService.addPoint(user, ROULETTE_REWARD, PointActionType.ROULETTE_REWARD);
+        pointService.addPoint(user, rouletteReward, PointActionType.ROULETTE_REWARD);
 
         return true;
     }

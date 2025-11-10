@@ -60,6 +60,8 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
   show-actuator: true
+  cache:
+    disabled: true
 
 # 앱 설정
 app:

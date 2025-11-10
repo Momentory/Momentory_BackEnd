@@ -1,5 +1,7 @@
 package com.example.momentory.domain.character.entity;
 
+import com.example.momentory.domain.character.entity.status.CharacterType;
+import com.example.momentory.domain.character.entity.status.ItemCategory;
 import com.example.momentory.global.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

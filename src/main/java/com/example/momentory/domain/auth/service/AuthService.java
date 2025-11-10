@@ -8,20 +8,19 @@ import com.example.momentory.domain.auth.repository.UserTermsRepository;
 import com.example.momentory.domain.auth.converter.AuthConverter;
 import com.example.momentory.domain.auth.dto.AuthRequestDTO;
 import com.example.momentory.domain.auth.dto.AuthResponseDTO;
-import com.example.momentory.domain.character.dto.CharacterDto;
-import com.example.momentory.domain.character.entity.CharacterType;
+import com.example.momentory.domain.character.entity.status.CharacterType;
 import com.example.momentory.domain.character.service.CharacterService;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.entity.UserProfile;
 import com.example.momentory.domain.point.entity.PointHistory;
 import com.example.momentory.domain.point.entity.PointActionType;
 import com.example.momentory.domain.point.repository.PointHistoryRepository;
+import com.example.momentory.domain.point.service.PointService;
 import com.example.momentory.domain.user.repository.UserProfileRepository;
 import com.example.momentory.domain.user.repository.UserRepository;
 import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.code.status.ErrorStatus;
 import com.example.momentory.global.exception.GeneralException;
-import com.example.momentory.global.security.SecurityUtils;
 import com.example.momentory.global.security.TokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -46,10 +45,9 @@ public class AuthService {
     private final MailService mailService;
     private final CharacterService characterService;
     private final PointHistoryRepository pointHistoryRepository;
+    private final PointService pointService;
 
     private final PasswordEncoder passwordEncoder;
-
-    private static final int SIGNUP_BONUS_POINTS = 500;
 
     @Transactional
     public AuthResponseDTO.SignResponseDTO signUp(AuthConverter.UserRegistrationData data, boolean agreeTerms, CharacterType characterType) {
@@ -73,16 +71,17 @@ public class AuthService {
             User savedUser = userRepository.save(data.user());
             UserProfile userProfile = data.userProfile();
             userProfile.setUser(savedUser);
-            
+
             // 가입 축하 포인트 지급
-            userProfile.plusPoint(SIGNUP_BONUS_POINTS);
+            int signupPoints = pointService.getPointAmount(PointActionType.SIGNUP);
+            userProfile.plusPoint(signupPoints);
             userProfileRepository.save(userProfile);
-            
+
             // 가입 포인트 PointHistory에 기록 (일관성과 추적성을 위해)
             PointHistory signupPointHistory = PointHistory.builder()
                     .user(savedUser)
                     .actionType(PointActionType.SIGNUP)
-                    .amount(SIGNUP_BONUS_POINTS)
+                    .amount(signupPoints)
                     .build();
             pointHistoryRepository.save(signupPointHistory);
 
@@ -105,8 +104,6 @@ public class AuthService {
             if (rootMsg != null) {
                 if (rootMsg.contains("uk_user_email")) {
                     throw new GeneralException(ErrorStatus.EMAIL_DUPLICATE);
-                } else if (rootMsg.contains("uk_user_nickname")) {
-                    throw new GeneralException(ErrorStatus.NICKNAME_DUPLICATE);
                 }
 
                 throw new GeneralException(ErrorStatus.DATABASE_ERROR);
@@ -158,13 +155,6 @@ public class AuthService {
     public void duplicationCheckEmail(String email) {
         if (userRepository.existsByEmail(email)) {
             throw new GeneralException(ErrorStatus.EMAIL_DUPLICATE);
-        }
-    }
-
-    // 닉네임 중복 체크
-    public void duplicationCheckNickName(String nickName){
-        if (userProfileRepository.existsByNickname(nickName)) {
-            throw new GeneralException(ErrorStatus.NICKNAME_DUPLICATE);
         }
     }
 
@@ -239,11 +229,6 @@ public class AuthService {
                 user.updateBio(dto.getBio());
             }
 
-            Optional<UserProfile> existingByNickName = userProfileRepository.findByNickname(dto.getNickName());
-            if (existingByNickName.isPresent() && !existingByNickName.get().getUser().getId().equals(user.getUserId())) {
-                throw new GeneralException(ErrorStatus.NICKNAME_DUPLICATE);
-            }
-
             Optional<UserProfile> optionalProfile = userProfileRepository.findByUser(user);
 
             if (optionalProfile.isPresent()) {
@@ -254,6 +239,8 @@ public class AuthService {
                         dto.getGender(),
                         dto.getImageName(),
                         dto.getImageUrl(),
+                        null, // backgroundImageName - 회원가입 시에는 설정하지 않음
+                        null, // backgroundImageUrl - 회원가입 시에는 설정하지 않음
                         dto.getBio(),
                         dto.getExternalLink()
                 );
@@ -279,8 +266,6 @@ public class AuthService {
             if (rootMsg != null) {
                 if (rootMsg.contains("uk_user_email")) {
                     throw new GeneralException(ErrorStatus.EMAIL_DUPLICATE);
-                } else if (rootMsg.contains("uk_user_nick_name")) {
-                    throw new GeneralException(ErrorStatus.NICKNAME_DUPLICATE);
                 }
             }
 

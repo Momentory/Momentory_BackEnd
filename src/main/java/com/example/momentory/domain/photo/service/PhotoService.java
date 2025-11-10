@@ -41,8 +41,6 @@ public class PhotoService {
     private final KakaoMapService kakaoMapService;
     private final PointService pointService;
 
-    private static final int PHOTO_UPLOAD_POINTS = 50;
-
     // 포토 업로드
     @Transactional
     public PhotoReseponseDto.PhotoUploadResponse uploadPhoto(PhotoRequestDto.PhotoUpload photoRequest) {
@@ -80,7 +78,7 @@ public class PhotoService {
         }
 
         // 사진 업로드 포인트 지급
-        pointService.addPoint(PHOTO_UPLOAD_POINTS, PointActionType.UPLOAD);
+        pointService.addPoint(pointService.getPointAmount(PointActionType.UPLOAD), PointActionType.UPLOAD);
 
         return PhotoReseponseDto.PhotoUploadResponse.builder()
                 .photoId(savedPhoto.getPhotoId())

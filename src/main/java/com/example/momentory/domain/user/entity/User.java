@@ -13,8 +13,7 @@ import java.util.*;
 @Table(
         name = "users",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_user_email", columnNames = "email"),
-                @UniqueConstraint(name = "uk_user_nickname", columnNames = "nickname")
+                @UniqueConstraint(name = "uk_user_email", columnNames = "email")
         }
 )
 @Getter
@@ -36,7 +35,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String nickname;
 
     @Column(nullable = false)

@@ -106,15 +106,20 @@ public class WebSecurityConfig {
                 "http://localhost:8080",
                 "http://localhost:5173",
                 "http://localhost:3000",
-                "https://www.momentory.store",
-                "http://www.momentory.store",
                 "https://momentory.store",
-                "https://momentoryy.vercel.app"
+                "https://momentoryy.vercel.app",
+                "https://localhost:5173"
         );
 
         config.setAllowedOrigins(allowedOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.addAllowedHeader("*");
+        config.setAllowedHeaders(List.of(
+                "Authorization",
+                "Content-Type",
+                "Cache-Control",
+                "X-Requested-With"
+        ));
+
         config.setAllowCredentials(true);
         source.registerCorsConfiguration("/**", config);
 

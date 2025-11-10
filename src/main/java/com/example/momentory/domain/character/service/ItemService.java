@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -51,11 +52,11 @@ public class ItemService {
     @Transactional
     public ItemDto.Response buyItem(Long itemId) {
         User user = userService.getCurrentUser();
-        
+
         // 현재 캐릭터의 레벨 확인
         Character currentCharacter = characterService.getCurrentCharacter();
         int currentLevel = currentCharacter.getLevel();
-        
+
         CharacterItem item = characterItemRepository.findById(itemId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.ITEM_NOT_FOUND));
 
@@ -63,6 +64,11 @@ public class ItemService {
         if (item.getUnlockLevel() > currentLevel) {
             log.warn("아이템 구매 실패 - 레벨 부족. 필요 레벨: {}, 현재 레벨: {}", item.getUnlockLevel(), currentLevel);
             throw new GeneralException(ErrorStatus.ITEM_LEVEL_LOCKED);
+        }
+
+        // 이벤트 한정 아이템 기간 검증
+        if (item.isLimited()) {
+            validateEventPeriodForPurchase(item);
         }
 
         // 이미 보유한 아이템인지 확인
@@ -83,6 +89,28 @@ public class ItemService {
         UserItem savedUserItem = userItemRepository.save(userItem);
 
         return characterConverter.toItemResponse(savedUserItem);
+    }
+
+    /**
+     * 이벤트 한정 아이템 구매 시 이벤트 기간 검증
+     */
+    private void validateEventPeriodForPurchase(CharacterItem item) {
+        // 이벤트가 연결되어 있지 않은 경우
+        if (item.getEvent() == null) {
+            throw new GeneralException(ErrorStatus.EVENT_ITEM_PURCHASE_UNAVAILABLE);
+        }
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 이벤트가 활성화되어 있지 않은 경우
+        if (!item.getEvent().isActive()) {
+            throw new GeneralException(ErrorStatus.EVENT_NOT_ACTIVE);
+        }
+
+        // 이벤트 기간이 아닌 경우
+        if (!item.getEvent().isEventPeriod(now)) {
+            throw new GeneralException(ErrorStatus.EVENT_ITEM_PURCHASE_UNAVAILABLE);
+        }
     }
 
     @Transactional

@@ -1,11 +1,14 @@
 package com.example.momentory.domain.character.service;
 
 import com.example.momentory.domain.character.converter.CharacterConverter;
+import com.example.momentory.domain.character.dto.EventDto;
 import com.example.momentory.domain.character.dto.ItemDto;
 import com.example.momentory.domain.character.entity.Character;
 import com.example.momentory.domain.character.entity.CharacterItem;
+import com.example.momentory.domain.character.entity.Event;
 import com.example.momentory.domain.character.entity.status.ItemCategory;
 import com.example.momentory.domain.character.repository.CharacterItemRepository;
+import com.example.momentory.domain.character.repository.EventRepository;
 import com.example.momentory.domain.character.repository.UserItemRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.service.UserService;
@@ -26,6 +29,7 @@ public class ShopService {
 
     private final CharacterItemRepository characterItemRepository;
     private final UserItemRepository userItemRepository;
+    private final EventRepository eventRepository;
     private final CharacterConverter characterConverter;
     private final UserService userService;
     private final CharacterService characterService;
@@ -48,6 +52,39 @@ public class ShopService {
                 .map(item -> {
                     boolean isOwned = userItemRepository.existsByUserAndItem_ItemId(user, item.getItemId());
                     return characterConverter.toShopItemResponse(item, isOwned);
+                })
+                .collect(Collectors.toList());
+    }
+
+    public List<EventDto.EventWithItemsResponse> getActiveEventsWithItems() {
+        LocalDateTime now = LocalDateTime.now();
+
+        // 현재 진행 중인 이벤트 조회
+        List<Event> activeEvents = eventRepository.findActiveEventsInPeriod(now);
+
+        // 각 이벤트에 연결된 아이템 조회
+        return activeEvents.stream()
+                .map(event -> {
+                    // 해당 이벤트에 연결된 아이템들 조회
+                    List<CharacterItem> eventItems = characterItemRepository.findAll().stream()
+                            .filter(item -> item.getEvent() != null && item.getEvent().getEventId().equals(event.getEventId()))
+                            .collect(Collectors.toList());
+
+                    List<EventDto.EventItemInfo> itemInfos = eventItems.stream()
+                            .map(characterConverter::toEventItemInfo)
+                            .collect(Collectors.toList());
+
+                    return EventDto.EventWithItemsResponse.builder()
+                            .eventId(event.getEventId())
+                            .title(event.getTitle())
+                            .description(event.getDescription())
+                            .startDate(event.getStartDate())
+                            .endDate(event.getEndDate())
+                            .eventType(event.getEventType())
+                            .isActive(event.isActive())
+                            .isOngoing(event.isEventPeriod(now))
+                            .items(itemInfos)
+                            .build();
                 })
                 .collect(Collectors.toList());
     }

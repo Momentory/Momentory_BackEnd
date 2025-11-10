@@ -3,7 +3,7 @@ package com.example.momentory.domain.character.service;
 import com.example.momentory.domain.character.converter.CharacterConverter;
 import com.example.momentory.domain.character.dto.CharacterDto;
 import com.example.momentory.domain.character.entity.Character;
-import com.example.momentory.domain.character.entity.CharacterType;
+import com.example.momentory.domain.character.entity.status.CharacterType;
 import com.example.momentory.domain.character.entity.UserItem;
 import com.example.momentory.domain.character.repository.CharacterRepository;
 import com.example.momentory.domain.character.repository.UserItemRepository;

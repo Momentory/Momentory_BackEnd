@@ -105,6 +105,12 @@ public enum ErrorStatus implements BaseErrorCode {
     WARDROBE_NOT_FOUND(HttpStatus.NOT_FOUND, "WARDROBE4001", "옷장 슬롯을 찾을 수 없습니다."),
     WARDROBE_ACCESS_DENIED(HttpStatus.FORBIDDEN, "WARDROBE4002", "해당 옷장에 접근할 권한이 없습니다."),
 
+    // 이벤트 관련 에러
+    EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "EVENT4001", "이벤트를 찾을 수 없습니다."),
+    EVENT_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "EVENT4002", "활성화되지 않은 이벤트입니다."),
+    EVENT_NOT_IN_PERIOD(HttpStatus.BAD_REQUEST, "EVENT4003", "이벤트 기간이 아닙니다."),
+    EVENT_ITEM_PURCHASE_UNAVAILABLE(HttpStatus.FORBIDDEN, "EVENT4004", "이벤트 기간이 아니므로 해당 아이템을 구매할 수 없습니다."),
+
     // 커뮤니티 관련 에러
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "POST4001", "게시글을 찾을 수 없습니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "COMMENT4001", "댓글을 찾을 수 없습니다."),

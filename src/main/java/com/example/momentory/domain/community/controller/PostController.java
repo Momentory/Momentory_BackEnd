@@ -5,6 +5,7 @@ import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.service.LikeService;
 import com.example.momentory.domain.community.service.PostQueryService;
 import com.example.momentory.domain.community.service.PostService;
+import com.example.momentory.domain.community.service.ScrapService;
 import com.example.momentory.global.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/community/posts")
@@ -22,6 +24,7 @@ public class PostController {
     private final PostService postService;
     private final LikeService likeService;
     private final PostQueryService postQueryService;
+    private final ScrapService scrapService;
 
     @PostMapping
     @Operation(summary = "게시글 생성", description = "새로운 게시글을 작성합니다.")
@@ -64,6 +67,20 @@ public class PostController {
         return ApiResponse.onSuccess(postQueryService.getPostsByTag(tagName, req));
     }
 
+    @GetMapping("/tags/filter")
+    @Operation(summary = "다중 태그 필터링", description = "여러 태그로 게시글을 필터링합니다. (OR 조건)")
+    public ApiResponse<PostResponseDto.PostCursorResponse> getPostsByTags(
+            @RequestParam List<String> tags,
+            @RequestParam(required = false) LocalDateTime cursor,
+            @RequestParam(defaultValue = "20") Integer size) {
+        PostRequestDto.PostTagFilterRequest req = PostRequestDto.PostTagFilterRequest.builder()
+                .tags(tags)
+                .cursor(cursor)
+                .size(size)
+                .build();
+        return ApiResponse.onSuccess(postQueryService.getPostsByTags(req));
+    }
+
     @GetMapping("/search")
     @Operation(summary = "게시글 검색", description = "제목/내용으로 게시글을 검색합니다.")
     public ApiResponse<PostResponseDto.PostCursorResponse> searchPosts(
@@ -97,4 +114,14 @@ public class PostController {
                         ? "게시글에 좋아요를 설정했습니다." : "게시글의 좋아요를 취소했습니다."
         );
     }
+
+    @PostMapping("/posts/{postId}/scrap")
+    @Operation(summary = "게시글 스크랩 토글", description = "게시글을 스크랩 또는 취소합니다.")
+    public ApiResponse<String> toggleScrap(@PathVariable Long postId) {
+        return ApiResponse.onSuccess(
+                scrapService.toggleScrap(postId)
+                        ? "게시글을 스크랩했습니다." : "게시글 스크랩을 취소했습니다."
+        );
+    }
+
 }

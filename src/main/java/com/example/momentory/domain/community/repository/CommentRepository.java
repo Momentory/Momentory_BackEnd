@@ -1,5 +1,6 @@
 package com.example.momentory.domain.community.repository;
 
+import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.entity.Comment;
 import com.example.momentory.domain.user.entity.User;
 import org.springframework.data.domain.Pageable;
@@ -28,4 +29,11 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
 
     // 커서가 null일 때 (첫 페이지)
     List<Comment> findAllByPostPostIdOrderByCreatedAtDesc(Long postId, Pageable pageable);
+
+    // ===== 썸네일 전용 쿼리 (postId, imageUrl만 조회) =====
+
+    // 특정 사용자가 댓글을 단 게시글의 썸네일 정보만 조회 (중복 제거)
+    @Query("SELECT DISTINCT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
+            "FROM Comment c JOIN c.post p WHERE c.user = :user")
+    List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUser(@Param("user") User user);
 }

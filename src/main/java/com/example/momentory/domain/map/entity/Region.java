@@ -19,4 +19,5 @@ public class Region {
     private String name;       // 예: "수원시"
     private String type;       // 예: "시" or "군"
     private String code;
+    private String imageUrl;   // 지역 이미지 URL
 }

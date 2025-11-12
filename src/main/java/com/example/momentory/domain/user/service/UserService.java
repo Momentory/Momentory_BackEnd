@@ -1,5 +1,6 @@
 package com.example.momentory.domain.user.service;
 
+import com.example.momentory.domain.character.service.CharacterService;
 import com.example.momentory.domain.notification.entity.NotificationType;
 import com.example.momentory.domain.notification.event.NotificationEvent;
 import com.example.momentory.domain.user.dto.UserRequestDto;
@@ -44,7 +45,6 @@ public class UserService {
         User user = getCurrentUser();
 
         UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
-
         // 팔로워 수와 팔로잉 수 조회
         Long followerCount = followRepository.countByFollowing(user);
         Long followingCount = followRepository.countByFollower(user);
@@ -58,7 +58,6 @@ public class UserService {
                 .birth(userProfile != null ? userProfile.getBirth() : null)
                 .gender(userProfile != null ? userProfile.getGender() : null)
                 .point(userProfile != null ? userProfile.getPoint() : 0)
-                .level(userProfile != null ? userProfile.getLevel() : 0)
                 .imageName(userProfile != null ? userProfile.getImageName() : null)
                 .imageUrl(userProfile != null ? userProfile.getImageUrl() : null)
                 .backgroundImageName(userProfile != null ? userProfile.getBackgroundImageName() : null)
@@ -67,6 +66,21 @@ public class UserService {
                 .externalLink(userProfile != null ? userProfile.getExternalLink() : null)
                 .followerCount(followerCount)
                 .followingCount(followingCount)
+                .build();
+    }
+
+    //내 정보 요약 조회
+    public UserResponseDto.MySummaryInfoDto getMySummaryInfo() {
+        User user = getCurrentUser();
+
+        UserProfile userProfile = userProfileRepository.findByUser(user).orElse(null);
+
+        return UserResponseDto.MySummaryInfoDto.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .name(user.getName())
+                .nickname(user.getNickname())
+                .imageUrl(userProfile != null ? userProfile.getImageUrl() : null)
                 .build();
     }
 
@@ -154,7 +168,6 @@ public class UserService {
                 .birth(userProfile.getBirth())
                 .gender(userProfile.getGender())
                 .point(userProfile.getPoint())
-                .level(userProfile.getLevel())
                 .imageName(userProfile.getImageName())
                 .imageUrl(userProfile.getImageUrl())
                 .backgroundImageName(userProfile.getBackgroundImageName())

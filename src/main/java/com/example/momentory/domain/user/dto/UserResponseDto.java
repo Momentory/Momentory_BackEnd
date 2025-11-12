@@ -21,7 +21,6 @@ public class UserResponseDto {
         private LocalDate birth;
         private Gender gender;
         private int point;
-        private int level;
         private String imageName;
         private String imageUrl;
         private String backgroundImageName;
@@ -30,6 +29,19 @@ public class UserResponseDto {
         private String externalLink;
         private Long followerCount; // 팔로워 수
         private Long followingCount; // 팔로잉 수
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Builder
+    public static class MySummaryInfoDto{
+        private Long userId;
+        private String email;
+        private String name;
+        private String nickname; // User 엔티티의 nickname
+        private String imageUrl;
     }
 
     @Getter

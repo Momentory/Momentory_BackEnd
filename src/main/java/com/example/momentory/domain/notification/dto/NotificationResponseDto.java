@@ -54,4 +54,19 @@ public class NotificationResponseDto {
         private boolean followAlert;        // 팔로우 알림
         private boolean levelUpAlert;       // 캐릭터 레벨업 알림
     }
+
+    /**
+     * WebSocket 실시간 알림 메시지
+     */
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class WebSocketNotificationMessage {
+        private NotificationType type;      // 알림 타입
+        private String message;             // 알림 메시지
+        private Long relatedId;             // 관련 엔티티 ID
+        private LocalDateTime timestamp;    // 전송 시각
+        private int unreadCount;            // 미확인 알림 개수
+    }
 }

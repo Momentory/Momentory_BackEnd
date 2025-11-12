@@ -35,6 +35,12 @@ public class MyPageController {
         return ApiResponse.onSuccess(userService.getMyInfo());
     }
 
+    @GetMapping("/profile/summary")
+    @Operation(summary = "내 정보 요약 조회", description = "내 정보를 요약하여 조회하는 API입니다.")
+    public ApiResponse<UserResponseDto.MySummaryInfoDto> getSummaryProfile() {
+        return ApiResponse.onSuccess(userService.getMySummaryInfo());
+    }
+
     @DeleteMapping("")
     @Operation(summary = "회원 탈퇴", description = "회원을 탈퇴하는 API입니다.")
     public ApiResponse<String> deleteProfile() {

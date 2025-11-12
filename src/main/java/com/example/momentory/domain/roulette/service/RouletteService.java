@@ -12,6 +12,7 @@ import com.example.momentory.domain.roulette.dto.RouletteRequestDto;
 import com.example.momentory.domain.roulette.dto.RouletteResponseDto;
 import com.example.momentory.domain.roulette.entity.Roulette;
 import com.example.momentory.domain.roulette.entity.RouletteSlotType;
+import com.example.momentory.domain.roulette.entity.RouletteStatus;
 import com.example.momentory.domain.roulette.entity.RouletteType;
 import com.example.momentory.domain.roulette.repository.RouletteRepository;
 import com.example.momentory.domain.stamp.repository.StampRepository;
@@ -162,7 +163,8 @@ public class RouletteService {
                     .type(RouletteType.TRAVEL)
                     .reward(request.getSelectedName())
                     .usedPoint(rouletteCost)
-                    .earnedPoint(0)  // 아직 인증 안 함
+                    .earnedPoint(500)
+                    .status(RouletteStatus.IN_PROGRESS)
                     .deadline(deadline)  // 마감일 저장
                     .build();
 
@@ -179,6 +181,7 @@ public class RouletteService {
                     .type(RouletteType.GENERAL)
                     .reward(item.getName())
                     .usedPoint(rouletteCost)
+                    .status(RouletteStatus.IN_PROGRESS)
                     .earnedPoint(0)  // 아이템은 포인트 보상 없음
                     .build();
             roulette.completeRouletteReward(0);  // 바로 완료 처리

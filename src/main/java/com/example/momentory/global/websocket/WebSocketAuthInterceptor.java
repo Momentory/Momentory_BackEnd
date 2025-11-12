@@ -57,7 +57,6 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
                                 );
 
                         accessor.setUser(authentication);
-                        log.info("✅ WebSocket authenticated - userId: {}", userId);
                     } else {
                         log.warn("⚠️ Invalid WebSocket token");
                     }

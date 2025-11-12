@@ -153,6 +153,9 @@ public class RouletteService {
             regionRepository.findByName(request.getSelectedName())
                     .orElseThrow(() -> new GeneralException(ErrorStatus.REGION_NOT_FOUND));
 
+            // 인증 마감일 계산 (3일 후)
+            deadline = LocalDateTime.now().plusDays(3);
+
             // 룰렛 생성 및 저장 (미션 지역)
             Roulette roulette = Roulette.builder()
                     .user(user)
@@ -160,12 +163,10 @@ public class RouletteService {
                     .reward(request.getSelectedName())
                     .usedPoint(rouletteCost)
                     .earnedPoint(0)  // 아직 인증 안 함
+                    .deadline(deadline)  // 마감일 저장
                     .build();
 
             savedRoulette = rouletteRepository.save(roulette);
-
-            // 인증 마감일 계산 (3일 후)
-            deadline = savedRoulette.getCreatedAt().plusDays(3);
 
         } else {  // ITEM
             // 선택된 아이템이 실제 존재하는 아이템인지 확인
@@ -211,11 +212,11 @@ public class RouletteService {
      */
     @Transactional
     public boolean checkAndCompleteRouletteReward(User user, String regionName) {
-        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+        LocalDateTime now = LocalDateTime.now();
 
-        // 3일 이내 미완료 룰렛 중 해당 지역과 일치하는 것 찾기
+        // 진행 중이고 마감일 이내인 룰렛 중 해당 지역과 일치하는 것 찾기
         Optional<Roulette> activeRouletteOpt = rouletteRepository
-                .findActiveRouletteByUserAndRegion(user, regionName, threeDaysAgo);
+                .findActiveRouletteByUserAndRegion(user, regionName, now);
 
         if (activeRouletteOpt.isEmpty()) {
             return false;  // 룰렛 인증 대상 아님
@@ -225,7 +226,7 @@ public class RouletteService {
 
         int rouletteReward = pointService.getPointAmount(PointActionType.ROULETTE_REWARD);
 
-        // 룰렛 인증 완료 처리
+        // 룰렛 인증 완료 처리 (상태 -> SUCCESS)
         roulette.completeRouletteReward(rouletteReward);
 
         // 보상 포인트 지급
@@ -235,24 +236,27 @@ public class RouletteService {
     }
 
     /**
-     * 3일 이내 미완료 룰렛 중 해당 지역과 일치하는 것이 있는지 확인
+     * 진행 중이고 마감일 이내인 룰렛 중 해당 지역과 일치하는 것이 있는지 확인
      */
     @Transactional(readOnly = true)
     public boolean hasActiveRoulette(User user, String regionName) {
-        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
+        LocalDateTime now = LocalDateTime.now();
         return rouletteRepository
-                .findActiveRouletteByUserAndRegion(user, regionName, threeDaysAgo)
+                .findActiveRouletteByUserAndRegion(user, regionName, now)
                 .isPresent();
     }
 
     /**
-     * 룰렛 내역 조회
+     * 룰렛 내역 조회 (상태 자동 업데이트)
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public RouletteResponseDto.RouletteHistory getRouletteHistory() {
         User user = userService.getCurrentUser();
 
         List<Roulette> roulettes = rouletteRepository.findByUserOrderByCreatedAtDesc(user);
+
+        // 각 룰렛의 상태 자동 업데이트
+        roulettes.forEach(Roulette::updateStatusIfExpired);
 
         List<RouletteResponseDto.RouletteInfo> rouletteInfos = roulettes.stream()
                 .map(roulette -> RouletteResponseDto.RouletteInfo.builder()
@@ -261,9 +265,9 @@ public class RouletteService {
                         .reward(roulette.getReward())
                         .usedPoint(roulette.getUsedPoint())
                         .earnedPoint(roulette.getEarnedPoint())
-                        .isCompleted(roulette.getEarnedPoint() > 0)
+                        .status(roulette.getStatus())
                         .createdAt(roulette.getCreatedAt())
-                        .deadline(roulette.getCreatedAt().plusDays(3))
+                        .deadline(roulette.getDeadline())
                         .build())
                 .collect(Collectors.toList());
 
@@ -273,13 +277,16 @@ public class RouletteService {
     }
 
     /**
-     * 미완료 룰렛 목록 조회
+     * 진행 중인 룰렛 목록 조회 (상태 자동 업데이트)
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public RouletteResponseDto.IncompleteRoulettes getIncompleteRoulettes() {
         User user = userService.getCurrentUser();
 
         List<Roulette> incompleteRoulettes = rouletteRepository.findIncompleteRoulettesByUser(user);
+
+        // 각 룰렛의 상태 자동 업데이트
+        incompleteRoulettes.forEach(Roulette::updateStatusIfExpired);
 
         List<RouletteResponseDto.RouletteInfo> rouletteInfos = incompleteRoulettes.stream()
                 .map(roulette -> RouletteResponseDto.RouletteInfo.builder()
@@ -288,9 +295,9 @@ public class RouletteService {
                         .reward(roulette.getReward())
                         .usedPoint(roulette.getUsedPoint())
                         .earnedPoint(roulette.getEarnedPoint())
-                        .isCompleted(false)
+                        .status(roulette.getStatus())
                         .createdAt(roulette.getCreatedAt())
-                        .deadline(roulette.getCreatedAt().plusDays(3))
+                        .deadline(roulette.getDeadline())
                         .build())
                 .collect(Collectors.toList());
 

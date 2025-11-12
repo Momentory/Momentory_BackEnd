@@ -168,6 +168,5 @@ public class PostService {
         }
 
         postRepository.delete(post);
-        log.info("게시글 DB 삭제 완료 - postId: {}", postId);
     }
 }

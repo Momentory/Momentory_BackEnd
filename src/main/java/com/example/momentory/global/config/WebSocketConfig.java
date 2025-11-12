@@ -41,7 +41,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // 특정 사용자에게 메시지 보낼 때 사용할 prefix
         config.setUserDestinationPrefix("/user");
 
-        log.info("✅ Message Broker configured - /topic, /queue, /app");
     }
 
     /**
@@ -62,7 +61,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 )
                 .withSockJS();  // SockJS 폴백 활성화
 
-        log.info("✅ STOMP Endpoint registered - /ws (with SockJS)");
     }
 
     /**
@@ -73,6 +71,5 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(webSocketAuthInterceptor);
-        log.info("✅ WebSocket Auth Interceptor registered");
     }
 }

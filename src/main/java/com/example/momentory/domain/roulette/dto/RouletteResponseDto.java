@@ -1,6 +1,7 @@
 package com.example.momentory.domain.roulette.dto;
 
 import com.example.momentory.domain.roulette.entity.RouletteSlotType;
+import com.example.momentory.domain.roulette.entity.RouletteStatus;
 import com.example.momentory.domain.roulette.entity.RouletteType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -67,10 +68,10 @@ public class RouletteResponseDto {
     public static class RouletteInfo {
         private Long rouletteId;
         private RouletteType type;
-        private String reward;          // 미션 지역
+        private String reward;          // 미션 지역 또는 아이템
         private int usedPoint;          // 사용한 포인트
         private int earnedPoint;        // 획득한 포인트
-        private boolean isCompleted;    // 인증 완료 여부
+        private RouletteStatus status;  // 룰렛 상태 (IN_PROGRESS, SUCCESS, FAILED)
         private LocalDateTime createdAt;
         private LocalDateTime deadline; // 인증 마감일
     }

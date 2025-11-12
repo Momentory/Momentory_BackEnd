@@ -67,5 +67,6 @@ public class NotificationResponseDto {
         private String message;             // 알림 메시지
         private Long relatedId;             // 관련 엔티티 ID
         private LocalDateTime timestamp;    // 전송 시각
+        private int unreadCount;            // 미확인 알림 개수
     }
 }

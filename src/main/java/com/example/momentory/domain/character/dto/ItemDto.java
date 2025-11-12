@@ -1,6 +1,6 @@
 package com.example.momentory.domain.character.dto;
 
-import com.example.momentory.domain.character.entity.ItemCategory;
+import com.example.momentory.domain.character.entity.status.ItemCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

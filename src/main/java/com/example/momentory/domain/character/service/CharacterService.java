@@ -3,7 +3,7 @@ package com.example.momentory.domain.character.service;
 import com.example.momentory.domain.character.converter.CharacterConverter;
 import com.example.momentory.domain.character.dto.CharacterDto;
 import com.example.momentory.domain.character.entity.Character;
-import com.example.momentory.domain.character.entity.CharacterType;
+import com.example.momentory.domain.character.entity.status.CharacterType;
 import com.example.momentory.domain.character.entity.UserItem;
 import com.example.momentory.domain.character.repository.CharacterRepository;
 import com.example.momentory.domain.character.repository.UserItemRepository;
@@ -13,6 +13,7 @@ import com.example.momentory.domain.notification.event.NotificationEvent;
 import com.example.momentory.domain.point.entity.PointActionType;
 import com.example.momentory.domain.point.entity.PointHistory;
 import com.example.momentory.domain.point.repository.PointHistoryRepository;
+import com.example.momentory.domain.point.service.PointService;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.exception.GeneralException;
@@ -36,11 +37,10 @@ public class CharacterService {
     private final UserItemRepository userItemRepository;
     private final CharacterConverter characterConverter;
     private final PointHistoryRepository pointHistoryRepository;
+    private final PointService pointService;
     private final LevelCalculator levelCalculator;
     private final UserService userService;
     private final ApplicationEventPublisher eventPublisher;
-
-    private static final int LEVEL_UP_BONUS = 200;
 
     @Transactional
     public CharacterDto.Response createCharacter(CharacterDto.CreateRequest request) {
@@ -237,11 +237,12 @@ public class CharacterService {
             character.updateLevel(newLevel);
             characterRepository.save(character);
 
-            user.getProfile().plusPoint(LEVEL_UP_BONUS);
+            int levelUpBonus = pointService.getPointAmount(PointActionType.LEVELUP);
+            user.getProfile().plusPoint(levelUpBonus);
 
             PointHistory levelUpHistory = PointHistory.builder()
                     .user(user)
-                    .amount(LEVEL_UP_BONUS)
+                    .amount(levelUpBonus)
                     .actionType(PointActionType.LEVELUP)
                     .build();
             pointHistoryRepository.save(levelUpHistory);
@@ -250,7 +251,7 @@ public class CharacterService {
             NotificationEvent event = NotificationEvent.builder()
                     .targetUser(user)
                     .type(NotificationType.LEVEL_UP)
-                    .message("축하합니다! 레벨 " + newLevel + "로 레벨업했습니다. (+" + LEVEL_UP_BONUS + " 포인트)")
+                    .message("축하합니다! 레벨 " + newLevel + "로 레벨업했습니다. (+" + levelUpBonus + " 포인트)")
                     .relatedId(character.getCharacterId())
                     .build();
             eventPublisher.publishEvent(event);

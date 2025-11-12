@@ -1,5 +1,6 @@
 package com.example.momentory.domain.roulette.dto;
 
+import com.example.momentory.domain.roulette.entity.RouletteSlotType;
 import com.example.momentory.domain.roulette.entity.RouletteType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,13 +12,26 @@ import java.util.List;
 public class RouletteResponseDto {
 
     /**
-     * 방문하지 않은 지역 5개 랜덤 조회 응답
+     * 룰렛 슬롯 8개 랜덤 조회 응답 (지역 + 아이템)
      */
     @Getter
     @AllArgsConstructor
     @Builder
-    public static class UnvisitedRegions {
-        private List<String> regions;  // 방문하지 않은 지역명 리스트 (최대 5개)
+    public static class RouletteSlots {
+        private List<RouletteSlot> slots;  // 룰렛 슬롯 리스트 (최대 8개)
+    }
+
+    /**
+     * 룰렛 슬롯 정보 (지역 또는 아이템)
+     */
+    @Getter
+    @AllArgsConstructor
+    @Builder
+    public static class RouletteSlot {
+        private RouletteSlotType type;  // REGION 또는 ITEM
+        private String name;            // 지역명 또는 아이템명
+        private String imageUrl;        // 지역 이미지 URL 또는 아이템 이미지 URL
+        private Long itemId;            // 아이템인 경우 아이템 ID (지역인 경우 null)
     }
 
     /**

@@ -14,6 +14,7 @@ import com.example.momentory.global.exception.GeneralException;
 import com.example.momentory.global.code.status.ErrorStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +22,23 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Log4j2
 public class PointService {
 
     private final UserService userService;
     private final PointHistoryRepository pointHistoryRepository;
     private final CharacterRepository characterRepository;
+    private final CharacterService characterService;
+
+    public PointService(UserService userService,
+                       PointHistoryRepository pointHistoryRepository,
+                       CharacterRepository characterRepository,
+                       @Lazy CharacterService characterService) {
+        this.userService = userService;
+        this.pointHistoryRepository = pointHistoryRepository;
+        this.characterRepository = characterRepository;
+        this.characterService = characterService;
+    }
 
     // 포인트 액션별 포인트 값
     private static final int SIGNUP_POINTS = 500;          // 회원가입 웰컴 포인트
@@ -97,10 +108,10 @@ public class PointService {
                 .build();
         pointHistoryRepository.save(history);
 
-//        // 캐릭터 레벨 자동 갱신
-//        characterService.updateCharacterLevel(
-//                characterService.getCurrentCharacter(), user
-//        );
+        // 캐릭터 레벨 자동 갱신
+        characterService.updateCharacterLevel(
+                characterService.getCurrentCharacter(), user
+        );
     }
 
     public void subtractPoint(int amount, PointActionType actionType) {

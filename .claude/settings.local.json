@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(find:*)",
-      "Bash(./gradlew clean build:*)"
+      "Bash(./gradlew clean build:*)",
+      "Bash(dir \"C:\\Users\\haeun\\OneDrive\\Desktop\\BEProject\\Momentory_BackEnd\" /B)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

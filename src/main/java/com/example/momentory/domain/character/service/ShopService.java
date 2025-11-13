@@ -38,15 +38,10 @@ public class ShopService {
         User user = userService.getCurrentUser();
         LocalDateTime now = LocalDateTime.now();
 
-        // 현재 캐릭터의 레벨 확인
-        Character currentCharacter = characterService.getCurrentCharacter();
-        int currentLevel = currentCharacter.getLevel();
-
-        // 모든 아이템 조회 후 필터링
-        List<CharacterItem> allItems = characterItemRepository.findAllByOrderByPriceAsc();
+        // 모든 아이템을 unlockLevel 오름차순으로 조회
+        List<CharacterItem> allItems = characterItemRepository.findAllByOrderByUnlockLevelAsc();
 
         return allItems.stream()
-                .filter(item -> item.getUnlockLevel() <= currentLevel) // 레벨 제한 필터링
                 .filter(item -> category == null || item.getCategory() == category) // 카테고리 필터링
                 .filter(item -> isItemAvailable(item, now)) // 이벤트 아이템 기간 검증
                 .map(item -> {

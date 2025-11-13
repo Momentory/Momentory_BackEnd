@@ -1,10 +1,7 @@
 package com.example.momentory.domain.file.service;
 
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.DeleteObjectsRequest;
-import com.amazonaws.services.s3.model.DeleteObjectsResult;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.*;
 import com.example.momentory.domain.file.dto.S3FileResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -36,8 +33,11 @@ public class S3Service {
         metadata.setContentType(image.getContentType());
         metadata.setContentLength(image.getSize());
 
-        amazonS3.putObject(new PutObjectRequest(bucket, fileName, image.getInputStream(), metadata));
+        PutObjectRequest request = new PutObjectRequest(bucket, fileName, image.getInputStream(), metadata)
+                .withCannedAcl(CannedAccessControlList.PublicRead); //권한 설정
 
+        amazonS3.putObject(request);
+        
         String url = getPublicUrl(fileName);
 
         // 파일명과 URL 따로 반환

@@ -75,13 +75,6 @@ public class AuthController {
         return ApiResponse.onSuccess("중복 없음");
     }
 
-    @GetMapping("/check-nickname")
-    @Operation(summary = "닉네임 중복확인", description = "중복된 닉네임이 있는지 확인합니다. ")
-    public ApiResponse<String> checkNickName(@RequestParam String nickName) {
-        authService.duplicationCheckNickName(nickName);
-        return ApiResponse.onSuccess("중복 없음");
-    }
-
     @PostMapping("/send-email")
     @Operation(summary = "이메일 인증 링크 전송", description = "이메일 인증 링크를 전송합니다.")
     @ApiResponses({

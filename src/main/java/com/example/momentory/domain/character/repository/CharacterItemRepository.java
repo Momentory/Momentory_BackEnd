@@ -1,7 +1,7 @@
 package com.example.momentory.domain.character.repository;
 
 import com.example.momentory.domain.character.entity.CharacterItem;
-import com.example.momentory.domain.character.entity.ItemCategory;
+import com.example.momentory.domain.character.entity.status.ItemCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,5 +13,7 @@ public interface CharacterItemRepository extends JpaRepository<CharacterItem, Lo
     List<CharacterItem> findByCategory(ItemCategory category);
 
     List<CharacterItem> findAllByOrderByPriceAsc();
+
+    List<CharacterItem> findTop3ByOrderByCreatedAtDesc();
 }
 

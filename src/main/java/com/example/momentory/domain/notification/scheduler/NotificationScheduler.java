@@ -27,16 +27,18 @@ public class NotificationScheduler {
     @Scheduled(cron = "0 0 10 * * *")  // 매일 오전 10시
     public void sendRouletteDeadlineNotifications() {
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime tomorrow = now.plusDays(1);
+        LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
 
-        // 내일 마감되는 미완료 룰렛 조회
+        // 내일 마감되는 진행 중인 룰렛 조회
         LocalDateTime startOfTomorrow = tomorrow.toLocalDate().atStartOfDay();
         LocalDateTime endOfTomorrow = tomorrow.toLocalDate().atTime(23, 59, 59);
 
-        List<Roulette> roulettes = rouletteRepository.findAllByDeadlineBetweenAndIsCompletedFalse(
-                startOfTomorrow, endOfTomorrow
-        );
+        List<Roulette> roulettes = rouletteRepository.findAll().stream()
+                .filter(r -> r.getStatus() == com.example.momentory.domain.roulette.entity.RouletteStatus.IN_PROGRESS)
+                .filter(r -> r.getDeadline() != null)
+                .filter(r -> !r.getDeadline().isBefore(startOfTomorrow) && !r.getDeadline().isAfter(endOfTomorrow))
+                .toList();
+
 
         // 각 룰렛에 대해 알림 발송
         for (Roulette roulette : roulettes) {
@@ -49,6 +51,8 @@ public class NotificationScheduler {
                         .build();
                 eventPublisher.publishEvent(event);
             } catch (Exception e) {
+                log.error("❌ 룰렛 마감 알림 전송 실패 - rouletteId: {}, error: {}",
+                        roulette.getRouletteId(), e.getMessage());
             }
         }
     }

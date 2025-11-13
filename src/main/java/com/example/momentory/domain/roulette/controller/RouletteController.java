@@ -18,17 +18,17 @@ public class RouletteController {
 
     private final RouletteService rouletteService;
 
-    @GetMapping("/unvisited-regions")
-    @Operation(summary = "방문하지 않은 지역 5개 랜덤 조회", 
-            description = "룰렛을 돌리기 위해 방문하지 않은 지역 최대 5개를 랜덤으로 조회합니다.")
-    public ApiResponse<RouletteResponseDto.UnvisitedRegions> getUnvisitedRegions() {
-        RouletteResponseDto.UnvisitedRegions response = rouletteService.getUnvisitedRegions();
+    @GetMapping("/slots")
+    @Operation(summary = "룰렛 슬롯 8개 랜덤 조회 (지역 + 아이템)",
+            description = "룰렛을 돌리기 위해 방문하지 않은 지역과 아이템을 포함한 최대 8개의 슬롯을 랜덤으로 조회합니다. 방문하지 않은 지역이 8개 이상이면 대부분 지역, 8개 이하이면 나머지는 아이템으로 채워집니다.")
+    public ApiResponse<RouletteResponseDto.RouletteSlots> getRouletteSlots() {
+        RouletteResponseDto.RouletteSlots response = rouletteService.getRouletteSlots();
         return ApiResponse.of(SuccessStatus._OK, response);
     }
 
     @PostMapping("/spin")
-    @Operation(summary = "룰렛 스핀", 
-            description = "룰렛을 돌려 미션 지역을 결정하고 포인트를 차감합니다. (200p 차감)")
+    @Operation(summary = "룰렛 스핀",
+            description = "룰렛을 돌려 미션 지역을 결정하거나 아이템을 획득하고 포인트를 차감합니다. (200p 차감) 지역이 선택되면 3일 이내 인증 미션이 생성되고, 아이템이 선택되면 바로 아이템이 지급됩니다.")
     public ApiResponse<RouletteResponseDto.SpinResult> spinRoulette(
             @RequestBody RouletteRequestDto.SpinRoulette request) {
         RouletteResponseDto.SpinResult response = rouletteService.spinRoulette(request);

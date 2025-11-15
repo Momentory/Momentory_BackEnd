@@ -115,8 +115,10 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.EVENT_NOT_FOUND));
 
-        // 이벤트를 삭제하면 연결된 아이템들의 event 참조가 null이 됨
-        // 필요하다면 여기서 연결된 아이템들을 처리할 수 있음
+        // 외래키 제약 조건을 위해 연관된 아이템을 먼저 삭제
+        characterItemRepository.deleteAllByEvent(event);
+
+        // 이벤트 삭제
         eventRepository.delete(event);
     }
 

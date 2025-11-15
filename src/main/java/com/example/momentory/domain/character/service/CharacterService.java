@@ -136,6 +136,25 @@ public class CharacterService {
         return characterConverter.toCurrentCharacterResponse(currentCharacter, totalPoints);
     }
 
+    /**
+     * 전체 캐릭터 타입 목록 조회 (모든 가능한 캐릭터 타입)
+     */
+    public List<CharacterDto.CharacterTypeResponse> getAllCharacterTypes() {
+        return List.of(
+                CharacterDto.CharacterTypeResponse.builder()
+                        .characterType(CharacterType.CAT)
+                        .displayName("고양이")
+                        .build(),
+                CharacterDto.CharacterTypeResponse.builder()
+                        .characterType(CharacterType.DOG)
+                        .displayName("강아지")
+                        .build()
+        );
+    }
+
+    /**
+     * 사용자가 보유한 전체 캐릭터 목록 조회
+     */
     @Transactional
     public List<CharacterDto.ListResponse> getAllCharacters() {
         User user = userService.getCurrentUser();

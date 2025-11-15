@@ -30,6 +30,7 @@ public class EventService {
 
     @Transactional
     public EventDto.Response createEvent(EventDto.CreateRequest request) {
+        // 1. 이벤트 생성
         Event event = Event.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -40,6 +41,26 @@ public class EventService {
                 .build();
 
         Event savedEvent = eventRepository.save(event);
+
+        // 2. 이벤트와 함께 생성할 아이템이 있다면 일괄 생성
+        if (request.getItems() != null && !request.getItems().isEmpty()) {
+            List<CharacterItem> items = request.getItems().stream()
+                    .map(itemRequest -> CharacterItem.builder()
+                            .name(itemRequest.getName())
+                            .category(itemRequest.getCategory())
+                            .imageName(itemRequest.getImageName())
+                            .imageUrl(itemRequest.getImageUrl())
+                            .price(itemRequest.getPrice())
+                            .unlockLevel(itemRequest.getUnlockLevel())
+                            .isLimited(itemRequest.isLimited())
+                            .event(savedEvent) // 생성된 이벤트와 연결
+                            .build())
+                    .collect(Collectors.toList());
+
+            characterItemRepository.saveAll(items);
+            log.info("이벤트 생성과 함께 {} 개의 아이템이 등록되었습니다.", items.size());
+        }
+
         return characterConverter.toEventResponse(savedEvent);
     }
 

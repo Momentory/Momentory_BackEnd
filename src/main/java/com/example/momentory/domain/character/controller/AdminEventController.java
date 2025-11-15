@@ -35,13 +35,6 @@ public class AdminEventController {
         return ApiResponse.onSuccess(response);
     }
 
-    @GetMapping("/{eventId}")
-    @Operation(summary = "이벤트 상세 조회", description = "특정 이벤트의 상세 정보를 조회합니다.")
-    public ApiResponse<EventDto.Response> getEvent(@PathVariable Long eventId) {
-        EventDto.Response response = eventService.getEvent(eventId);
-        return ApiResponse.onSuccess(response);
-    }
-
     @GetMapping("/{eventId}/items")
     @Operation(summary = "이벤트 아이템 조회", description = "특정 이벤트에 연결된 아이템 목록을 조회합니다.")
     public ApiResponse<EventDto.EventWithItemsResponse> getEventWithItems(@PathVariable Long eventId) {
@@ -60,13 +53,6 @@ public class AdminEventController {
     @Operation(summary = "예정된 이벤트 조회", description = "앞으로 시작될 이벤트 목록을 조회합니다.")
     public ApiResponse<List<EventDto.ListResponse>> getUpcomingEvents() {
         List<EventDto.ListResponse> response = eventService.getUpcomingEvents();
-        return ApiResponse.onSuccess(response);
-    }
-
-    @GetMapping("/type/{eventType}")
-    @Operation(summary = "타입별 이벤트 조회", description = "특정 타입의 이벤트 목록을 조회합니다.")
-    public ApiResponse<List<EventDto.ListResponse>> getEventsByType(@PathVariable EventType eventType) {
-        List<EventDto.ListResponse> response = eventService.getEventsByType(eventType);
         return ApiResponse.onSuccess(response);
     }
 

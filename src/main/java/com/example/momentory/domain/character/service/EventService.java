@@ -93,13 +93,6 @@ public class EventService {
                 .collect(Collectors.toList());
     }
 
-    public List<EventDto.ListResponse> getEventsByType(EventType eventType) {
-        List<Event> events = eventRepository.findByEventType(eventType);
-        return events.stream()
-                .map(characterConverter::toEventListResponse)
-                .collect(Collectors.toList());
-    }
-
     @Transactional
     public EventDto.Response updateEvent(Long eventId, EventDto.UpdateRequest request) {
         Event event = eventRepository.findById(eventId)
@@ -154,15 +147,4 @@ public class EventService {
                 .build();
     }
 
-    // 이벤트 기간 검증 (다른 서비스에서 사용)
-    public void validateEventPeriod(Event event) {
-        if (!event.isActive()) {
-            throw new GeneralException(ErrorStatus.EVENT_NOT_ACTIVE);
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        if (!event.isEventPeriod(now)) {
-            throw new GeneralException(ErrorStatus.EVENT_NOT_IN_PERIOD);
-        }
-    }
 }

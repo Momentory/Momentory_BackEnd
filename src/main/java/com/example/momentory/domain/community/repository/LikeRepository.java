@@ -24,4 +24,7 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
             "WHERE l.user = :user AND l.isActive = true")
     List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUser(@Param("user") User user);
 
+    // 특정 게시글의 모든 좋아요 삭제
+    void deleteAllByPost(Post post);
+
 }

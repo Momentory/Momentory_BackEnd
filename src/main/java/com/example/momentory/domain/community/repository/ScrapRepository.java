@@ -27,4 +27,7 @@ public interface ScrapRepository extends JpaRepository<Scrap, Long> {
     @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
             "FROM Scrap s JOIN s.post p WHERE s.user = :user")
     List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUser(@Param("user") User user);
+
+    // 특정 게시글의 모든 스크랩 삭제
+    void deleteAllByPost(Post post);
 }

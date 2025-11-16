@@ -50,21 +50,24 @@ public class StampService {
     public void grantCulturalStamp(String spotName) {
         User user = userService.getCurrentUser();
 
-        // 이미 해당 문화 스탬프 보유 시 중복 방지
-        if (stampRepository.existsByUserAndSpotName(user, spotName)) {
-            throw new GeneralException(ErrorStatus.DUPLICATE_RESOURCE);
-        }
+        // 공백 제거 및 정규화
+        String normalizedSpotName = spotName.replaceAll("\\s+", "").toLowerCase();
 
-        // CulturalStampData 내부에서 해당 spotName 탐색
+        // CulturalStampData 내부에서 해당 spotName 탐색 (공백 무시하고 비교)
         CulturalStampData.CulturalStamp matched = CulturalStampData.getSTAMPS().stream()
-                .filter(s -> s.getName().equalsIgnoreCase(spotName))
+                .filter(s -> s.getName().replaceAll("\\s+", "").toLowerCase().equals(normalizedSpotName))
                 .findFirst()
                 .orElseThrow(() -> new GeneralException(ErrorStatus.RESOURCE_NOT_FOUND));
+
+        // 이미 해당 문화 스탬프 보유 시 중복 방지 (정규화된 이름으로 체크)
+        if (stampRepository.existsByUserAndSpotName(user, matched.getName())) {
+            throw new GeneralException(ErrorStatus.DUPLICATE_RESOURCE);
+        }
 
         Stamp stamp = Stamp.builder()
                 .user(user)
                 .region(matched.getRegionName()) // CulturalStampData에서 지역 자동 매핑
-                .spotName(matched.getName())
+                .spotName(matched.getName())  // 정규화된 스탬프 이름 저장
                 .type(StampType.CULTURAL)
                 .issuedAt(LocalDateTime.now())
                 .build();

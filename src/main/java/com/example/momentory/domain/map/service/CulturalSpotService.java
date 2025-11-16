@@ -126,20 +126,34 @@ public class CulturalSpotService {
                     .map(CulturalStampData.CulturalStamp::getName)
                     .collect(Collectors.toList());
 
+            // TourAPI 응답 이름 → 스탬프 표준 이름 매핑
             Map<String, String> KNOWN_NAME_MAP = Map.ofEntries(
                     // 수원화성
                     Map.entry("수원 화성", "수원화성"),
                     Map.entry("수원 화성 [유네스코 세계유산]", "수원화성"),
                     Map.entry("화성", "수원화성"),
+                    // 남한산성
+                    Map.entry("남한산성 행궁", "남한산성"),
+                    Map.entry("남한 산성", "남한산성"),
+                    // 행복로
+                    Map.entry("행복 로", "행복로"),
+                    Map.entry("의정부 행복로", "행복로"),
+                    // 안양천
+                    Map.entry("안양천제방벚꽃길", "안양천"),
+                    Map.entry("안양천 제방", "안양천"),
+                    Map.entry("안양천제방", "안양천"),
+                    Map.entry("안양 천", "안양천"),
                     // 부천만화박물관
                     Map.entry("한국만화박물관", "부천만화박물관"),
                     Map.entry("한국 만화박물관", "부천만화박물관"),
                     Map.entry("만화박물관", "부천만화박물관"),
                     Map.entry("부천 만화박물관", "부천만화박물관"),
+                    Map.entry("부천 만화 박물관", "부천만화박물관"),
                     // 광명동굴
                     Map.entry("광명 동굴", "광명동굴"),
                     // 평택항
                     Map.entry("평택항 홍보관", "평택항"),
+                    Map.entry("평택 항", "평택항"),
                     // 동두천계곡
                     Map.entry("왕방계곡", "동두천계곡"),
                     Map.entry("동두천 계곡", "동두천계곡"),
@@ -149,28 +163,33 @@ public class CulturalSpotService {
                     Map.entry("탄도항누에섬", "안산누에섬"),
                     Map.entry("안산 누에섬", "안산누에섬"),
                     Map.entry("누에섬", "안산누에섬"),
+                    Map.entry("안산 누에 섬", "안산누에섬"),
                     // 고양킨텍스
                     Map.entry("킨텍스", "고양킨텍스"),
                     Map.entry("고양 킨텍스", "고양킨텍스"),
                     Map.entry("KINTEX", "고양킨텍스"),
+                    Map.entry("고양 킨 텍스", "고양킨텍스"),
                     // 과천서울대공원
                     Map.entry("서울대공원", "과천서울대공원"),
                     Map.entry("서울대 공원", "과천서울대공원"),
+                    Map.entry("과천 서울대공원", "과천서울대공원"),
+                    Map.entry("과천 서울대 공원", "과천서울대공원"),
                     // 구리시한강유채꽃
                     Map.entry("구리시 한강유채꽃", "구리시한강유채꽃"),
                     Map.entry("한강유채꽃", "구리시한강유채꽃"),
                     Map.entry("구리 한강유채꽃", "구리시한강유채꽃"),
+                    Map.entry("구리시 한강 유채꽃", "구리시한강유채꽃"),
+                    Map.entry("구리 한강 유채꽃", "구리시한강유채꽃"),
                     // 남양주시물의정원
                     Map.entry("남양주 물의정원", "남양주시물의정원"),
                     Map.entry("물의정원", "남양주시물의정원"),
                     Map.entry("남양주시 물의정원", "남양주시물의정원"),
+                    Map.entry("남양주시 물의 정원", "남양주시물의정원"),
+                    Map.entry("남양주 물의 정원", "남양주시물의정원"),
                     // 오산독산성
                     Map.entry("오산 독산성", "오산독산성"),
                     Map.entry("독산성", "오산독산성"),
-                    // 안양천
-                    Map.entry("안양천제방벚꽃길", "안양천"),
-                    Map.entry("안양천 제방", "안양천"),
-                    Map.entry("안양천제방", "안양천")
+                    Map.entry("오산 독 산성", "오산독산성")
             );
 
             Optional<Map<String, String>> matchedStamp = nearbySpots.stream()
@@ -178,13 +197,21 @@ public class CulturalSpotService {
                         String name = spot.get("name");
                         String normalized = normalizeName(name);
 
-                        // 사전 매핑 테이블에 있으면 강제 교정
+                        // 1. 사전 매핑 테이블에 정확히 있으면 강제 교정
                         if (KNOWN_NAME_MAP.containsKey(name)) {
                             spot.put("name", KNOWN_NAME_MAP.get(name));
                             return spot;
                         }
 
-                        // 유사도 기반 매칭
+                        // 2. 공백 제거 후 직접 비교 (더 정확한 매칭)
+                        for (String stampName : STAMP_SPOTS) {
+                            if (normalizeName(stampName).equals(normalized)) {
+                                spot.put("name", stampName);
+                                return spot;
+                            }
+                        }
+
+                        // 3. 유사도 기반 매칭 (오차 허용)
                         STAMP_SPOTS.stream()
                                 .filter(stamp -> similarity(normalizeName(stamp), normalized) >= 0.75)
                                 .findFirst()

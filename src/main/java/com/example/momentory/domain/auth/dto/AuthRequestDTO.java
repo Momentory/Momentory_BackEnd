@@ -57,14 +57,19 @@ public class AuthRequestDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class KakaoRequestDTO {
+        // 필수 필드
         private String name;
         private Gender gender;
         private LocalDate birthDate;
         private String nickName;
+        private CharacterType characterType;
+
+        // 선택 필드
         private String imageName;
         private String imageUrl;
         private String bio;
         private String externalLink;
+        private String kakaoNickname;  // 카카오에서 가져온 닉네임
     }
 
 }

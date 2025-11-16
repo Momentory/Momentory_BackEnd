@@ -224,16 +224,23 @@ public class AuthService {
                 throw new GeneralException(ErrorStatus.INACTIVE_USER);
             }
 
+            // 캐릭터 타입 필수 체크
+            if (dto.getCharacterType() == null) {
+                throw new GeneralException(ErrorStatus.INVALID_INPUT);
+            }
+
             user.updateName(dto.getName());
             if (dto.getBio() != null) {
                 user.updateBio(dto.getBio());
             }
 
             Optional<UserProfile> optionalProfile = userProfileRepository.findByUser(user);
+            boolean isFirstTimeSetup = optionalProfile.isEmpty();
 
+            UserProfile userProfile;
             if (optionalProfile.isPresent()) {
-                UserProfile profile = optionalProfile.get();
-                profile.updateProfile(
+                userProfile = optionalProfile.get();
+                userProfile.updateProfile(
                         dto.getNickName(),
                         dto.getBirthDate(),
                         dto.getGender(),
@@ -245,7 +252,10 @@ public class AuthService {
                         dto.getExternalLink()
                 );
             } else {
-                UserProfile userProfile = UserProfile.builder()
+                // 처음 프로필 설정 시 가입 축하 포인트 지급
+                int signupPoints = pointService.getPointAmount(PointActionType.SIGNUP);
+
+                userProfile = UserProfile.builder()
                         .user(user)
                         .nickname(dto.getNickName())
                         .gender(dto.getGender())
@@ -253,9 +263,33 @@ public class AuthService {
                         .imageName(dto.getImageName())
                         .imageUrl(dto.getImageUrl())
                         .externalLink(dto.getExternalLink())
+                        .point(signupPoints)
                         .build();
 
                 userProfileRepository.save(userProfile);
+
+                // 가입 포인트 PointHistory에 기록
+                PointHistory signupPointHistory = PointHistory.builder()
+                        .user(user)
+                        .actionType(PointActionType.SIGNUP)
+                        .amount(signupPoints)
+                        .build();
+                pointHistoryRepository.save(signupPointHistory);
+
+                // UserTerms 저장 (모든 약관 타입에 대해 동의 처리)
+                for (TermsType termsType : TermsType.values()) {
+                    UserTerms userTerms = UserTerms.builder()
+                            .user(user)
+                            .termsType(termsType)
+                            .agreed(true)
+                            .build();
+                    userTermsRepository.save(userTerms);
+                }
+            }
+
+            // 캐릭터가 없는 경우에만 생성 (처음 프로필 설정 시)
+            if (isFirstTimeSetup) {
+                characterService.createCharacterSigninUser(user, dto.getCharacterType());
             }
 
             return AuthConverter.toSigninResponseDTO(user);

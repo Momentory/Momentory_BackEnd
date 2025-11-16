@@ -12,7 +12,7 @@ public class UserRequestDto {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class UpdateProfileDto {
-        private String nickname;
+        private String nickName;
         private String imageName;
         private String imageUrl;
         private String backgroundImageName;

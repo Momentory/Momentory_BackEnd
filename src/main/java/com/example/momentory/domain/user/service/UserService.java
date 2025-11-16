@@ -165,14 +165,14 @@ public class UserService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.USER_PROFILE_NOT_FOUND));
 
         // User 테이블의 nickname도 함께 업데이트
-        if (request.getNickname() != null) {
-            user.updateNickname(request.getNickname());
+        if (request.getNickName() != null) {
+            user.updateNickname(request.getNickName());
             userRepository.save(user);
         }
 
         // 프로필 업데이트 (null이 아닌 값들만 업데이트)
         userProfile.updateProfile(
-                request.getNickname() != null ? request.getNickname() : userProfile.getNickname(),
+                request.getNickName() != null ? request.getNickName() : userProfile.getNickname(),
                 userProfile.getBirth(),
                 userProfile.getGender(),
                 request.getImageName() != null ? request.getImageName() : userProfile.getImageName(),

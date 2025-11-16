@@ -92,6 +92,21 @@ public class WebSecurityConfig {
                 .userInfoEndpoint(userInfo -> userInfo
                         .userService(customOAuth2UserService))
                 .successHandler(oAuth2LoginSuccessHandler)
+                .failureHandler((request, response, exception) -> {
+                    log.error("[OAuth2 로그인 실패] 에러 발생: {}", exception.getMessage(), exception);
+
+                    // 에러 원인 분석
+                    String errorMessage = exception.getMessage();
+                    if (exception.getCause() != null) {
+                        errorMessage += " | 원인: " + exception.getCause().getMessage();
+                    }
+
+                    log.error("[OAuth2 상세 에러] {}", errorMessage);
+
+                    // 프론트엔드로 에러 정보와 함께 리다이렉트
+                    response.sendRedirect("/login?error=oauth_failed&message=" +
+                            java.net.URLEncoder.encode(errorMessage, java.nio.charset.StandardCharsets.UTF_8));
+                })
         );
 
         return http.build();

@@ -76,6 +76,23 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "FROM Post p WHERE p.user = :user")
     List<PostResponseDto.PostThumbnailDto> findThumbnailsByUser(@Param("user") User user);
 
+    // 사용자 게시글 커서 페이지네이션
+    @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
+            "FROM Post p WHERE p.user = :user AND p.createdAt < :cursor " +
+            "ORDER BY p.createdAt DESC")
+    List<PostResponseDto.PostThumbnailDto> findThumbnailsByUserWithCursor(
+            @Param("user") User user,
+            @Param("cursor") LocalDateTime cursor,
+            Pageable pageable);
+
+    // 사용자 게시글 첫 페이지
+    @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
+            "FROM Post p WHERE p.user = :user " +
+            "ORDER BY p.createdAt DESC")
+    List<PostResponseDto.PostThumbnailDto> findThumbnailsByUserOrderByCreatedAtDesc(
+            @Param("user") User user,
+            Pageable pageable);
+
     // ===== 다중 태그 필터링 (OR 조건) =====
 
     // 다중 태그 필터링 커서 페이지네이션

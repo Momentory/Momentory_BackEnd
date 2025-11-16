@@ -71,4 +71,15 @@ public class PostResponseDto {
         private LocalDateTime nextCursor; // 다음 페이지를 위한 커서
         private boolean hasNext; // 다음 페이지 존재 여부
     }
+
+    // 썸네일 목록용 커서 응답
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class PostThumbnailCursorResponse {
+        private List<PostThumbnailDto> posts;
+        private LocalDateTime nextCursor; // 다음 페이지를 위한 커서
+        private boolean hasNext; // 다음 페이지 존재 여부
+    }
 }

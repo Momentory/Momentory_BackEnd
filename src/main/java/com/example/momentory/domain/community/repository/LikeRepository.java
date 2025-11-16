@@ -4,10 +4,12 @@ import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.entity.Like;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.user.entity.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,4 +29,23 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
             "FROM Like l JOIN l.post p WHERE l.user = :user")
     List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUser(@Param("user") User user);
+
+    // ===== 커서 기반 페이지네이션 =====
+
+    // 좋아요한 게시글 커서 페이지네이션 (최신순)
+    @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
+            "FROM Like l JOIN l.post p WHERE l.user = :user AND p.createdAt < :cursor " +
+            "ORDER BY p.createdAt DESC")
+    List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUserWithCursor(
+            @Param("user") User user,
+            @Param("cursor") LocalDateTime cursor,
+            Pageable pageable);
+
+    // 좋아요한 게시글 첫 페이지
+    @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
+            "FROM Like l JOIN l.post p WHERE l.user = :user " +
+            "ORDER BY p.createdAt DESC")
+    List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUserOrderByCreatedAtDesc(
+            @Param("user") User user,
+            Pageable pageable);
 }

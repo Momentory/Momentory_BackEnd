@@ -58,7 +58,6 @@ public class EventService {
                     .collect(Collectors.toList());
 
             characterItemRepository.saveAll(items);
-            log.info("이벤트 생성과 함께 {} 개의 아이템이 등록되었습니다.", items.size());
         }
 
         return characterConverter.toEventResponse(savedEvent);

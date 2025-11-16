@@ -29,6 +29,7 @@ public class PostResponseDto {
         private List<String> tags;
         private int likeCount;
         private int commentCount;
+        private boolean isLiked; // 현재 사용자의 좋아요 여부
         private boolean isScrapped; // 현재 사용자의 스크랩 여부
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;

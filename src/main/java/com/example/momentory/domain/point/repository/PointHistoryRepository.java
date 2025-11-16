@@ -16,7 +16,7 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, Long
 
     List<PointHistory> findByUser(User user);
 
-    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM PointHistory p WHERE p.user = :user")
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM PointHistory p WHERE p.user = :user AND p.amount > 0")
     int calculateTotalPointsByUser(@Param("user") User user);
 
     @Query("SELECT COUNT(ph) FROM PointHistory ph " +

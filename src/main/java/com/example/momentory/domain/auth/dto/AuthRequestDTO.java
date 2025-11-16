@@ -2,6 +2,7 @@ package com.example.momentory.domain.auth.dto;
 
 import com.example.momentory.domain.character.entity.status.CharacterType;
 import com.example.momentory.domain.user.entity.Gender;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -57,14 +58,22 @@ public class AuthRequestDTO {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class KakaoRequestDTO {
+        // 필수 필드
         private String name;
         private Gender gender;
         private LocalDate birthDate;
+
+        @JsonProperty("nickname")
         private String nickName;
+
+        private CharacterType characterType;
+
+        // 선택 필드
         private String imageName;
         private String imageUrl;
         private String bio;
         private String externalLink;
+        private String kakaoNickname;  // 카카오에서 가져온 닉네임
     }
 
 }

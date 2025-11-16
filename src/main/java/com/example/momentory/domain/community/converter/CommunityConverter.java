@@ -4,6 +4,7 @@ import com.example.momentory.domain.community.entity.Comment;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.community.dto.CommentResponseDto;
 import com.example.momentory.domain.community.dto.PostResponseDto;
+import com.example.momentory.domain.community.repository.LikeRepository;
 import com.example.momentory.domain.community.repository.ScrapRepository;
 import com.example.momentory.domain.user.entity.User;
 import com.example.momentory.domain.user.service.UserService;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 public class CommunityConverter {
 
     private final ScrapRepository scrapRepository;
+    private final LikeRepository likeRepository;
     private final UserService userService;
 
     /**
@@ -49,8 +51,9 @@ public class CommunityConverter {
             userProfileImageName = post.getUser().getProfile().getImageName();
         }
 
-        // 현재 사용자의 스크랩 여부 확인
+        // 현재 사용자의 좋아요/스크랩 여부 확인
         User currentUser = userService.getCurrentUser();
+        boolean isLiked = likeRepository.existsByUserAndPostAndIsActiveTrue(currentUser, post);
         boolean isScrapped = scrapRepository.findByUserAndPost(currentUser, post).isPresent();
 
         return PostResponseDto.PostDto.builder()
@@ -68,6 +71,7 @@ public class CommunityConverter {
                 .tags(tags)
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
+                .isLiked(isLiked)
                 .isScrapped(isScrapped)
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())

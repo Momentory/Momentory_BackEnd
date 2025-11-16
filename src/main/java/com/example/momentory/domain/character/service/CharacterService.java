@@ -267,37 +267,42 @@ public class CharacterService {
                 boolean alreadyRewarded = levelUpHistoryRepository.existsByUserAndReachedLevel(user, newLevel);
 
                 if (!alreadyRewarded) {
-                    // 레벨업 이력 저장 (중복 방지용)
-                    int levelUpBonus = pointService.getPointAmount(PointActionType.LEVELUP);
+                    try {
+                        // 레벨업 이력 저장 (중복 방지용)
+                        int levelUpBonus = pointService.getPointAmount(PointActionType.LEVELUP);
 
-                    LevelUpHistory levelUpHistoryRecord = LevelUpHistory.builder()
-                            .user(user)
-                            .character(character)
-                            .reachedLevel(newLevel)
-                            .bonusPoints(levelUpBonus)
-                            .totalPointsAtLevelup(totalPoints)
-                            .build();
-                    levelUpHistoryRepository.save(levelUpHistoryRecord);
+                        LevelUpHistory levelUpHistoryRecord = LevelUpHistory.builder()
+                                .user(user)
+                                .character(character)
+                                .reachedLevel(newLevel)
+                                .bonusPoints(levelUpBonus)
+                                .totalPointsAtLevelup(totalPoints)
+                                .build();
+                        levelUpHistoryRepository.save(levelUpHistoryRecord);
 
-                    // 보너스 포인트 지급
-                    user.getProfile().plusPoint(levelUpBonus);
+                        // 보너스 포인트 지급
+                        user.getProfile().plusPoint(levelUpBonus);
 
-                    PointHistory pointHistory = PointHistory.builder()
-                            .user(user)
-                            .amount(levelUpBonus)
-                            .actionType(PointActionType.LEVELUP)
-                            .build();
-                    pointHistoryRepository.save(pointHistory);
+                        PointHistory pointHistory = PointHistory.builder()
+                                .user(user)
+                                .amount(levelUpBonus)
+                                .actionType(PointActionType.LEVELUP)
+                                .build();
+                        pointHistoryRepository.save(pointHistory);
 
-                    // 레벨업 알림 발송
-                    NotificationEvent event = NotificationEvent.builder()
-                            .targetUser(user)
-                            .type(NotificationType.LEVEL_UP)
-                            .message("축하합니다! 레벨 " + newLevel + "로 레벨업했습니다. (+" + levelUpBonus + " 포인트)")
-                            .relatedId(character.getCharacterId())
-                            .build();
-                    eventPublisher.publishEvent(event);
+                        // 레벨업 알림 발송
+                        NotificationEvent event = NotificationEvent.builder()
+                                .targetUser(user)
+                                .type(NotificationType.LEVEL_UP)
+                                .message("축하합니다! 레벨 " + newLevel + "로 레벨업했습니다. (+" + levelUpBonus + " 포인트)")
+                                .relatedId(character.getCharacterId())
+                                .build();
+                        eventPublisher.publishEvent(event);
 
+                    } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                        // 동시성 이슈로 이미 다른 트랜잭션에서 레벨업 보상을 지급한 경우
+                        log.warn("레벨업 보상 중복 시도 감지 (동시성) - userId: {}, level: {}", user.getId(), newLevel);
+                    }
                 }
             } else {
                 log.debug("레벨 갱신만 수행 - userId: {}, characterId: {}, oldLevel: {}, newLevel: {}, isCurrent: {}, grantReward: {}",

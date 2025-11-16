@@ -160,8 +160,8 @@ public class CharacterService {
         User user = userService.getCurrentUser();
         List<Character> characters = characterRepository.findByOwner(user);
 
-        // 모든 캐릭터의 레벨을 갱신
-        characters.forEach(character -> updateCharacterLevel(character, user));
+        // 모든 캐릭터의 레벨을 갱신 (보상은 현재 캐릭터에만 지급되도록 grantReward=true)
+        characters.forEach(character -> updateCharacterLevel(character, user, true));
 
         return characters.stream()
                 .map(characterConverter::toCharacterListResponse)
@@ -245,9 +245,10 @@ public class CharacterService {
     /**
      * 캐릭터의 레벨을 사용자의 누적 포인트 기준으로 갱신합니다.
      * 레벨이 오를 경우 보너스 포인트를 지급합니다.
+     * @param grantReward true: 레벨업 보너스 포인트 지급 및 알림 발송, false: 레벨만 갱신
      */
     @Transactional
-    public void updateCharacterLevel(Character character, User user) {
+    public void updateCharacterLevel(Character character, User user, boolean grantReward) {
         int totalPoints = pointHistoryRepository.calculateTotalPointsByUser(user);
         int newLevel = levelCalculator.calculateLevel(totalPoints);
 
@@ -256,25 +257,42 @@ public class CharacterService {
             character.updateLevel(newLevel);
             characterRepository.save(character);
 
-            int levelUpBonus = pointService.getPointAmount(PointActionType.LEVELUP);
-            user.getProfile().plusPoint(levelUpBonus);
+            // 레벨업 보너스와 알림은 현재 캐릭터이고 grantReward가 true일 때만 지급
+            if (grantReward && character.isCurrentCharacter()) {
+                int levelUpBonus = pointService.getPointAmount(PointActionType.LEVELUP);
+                user.getProfile().plusPoint(levelUpBonus);
 
-            PointHistory levelUpHistory = PointHistory.builder()
-                    .user(user)
-                    .amount(levelUpBonus)
-                    .actionType(PointActionType.LEVELUP)
-                    .build();
-            pointHistoryRepository.save(levelUpHistory);
+                PointHistory levelUpHistory = PointHistory.builder()
+                        .user(user)
+                        .amount(levelUpBonus)
+                        .actionType(PointActionType.LEVELUP)
+                        .build();
+                pointHistoryRepository.save(levelUpHistory);
 
-            // 레벨업 알림 발송
-            NotificationEvent event = NotificationEvent.builder()
-                    .targetUser(user)
-                    .type(NotificationType.LEVEL_UP)
-                    .message("축하합니다! 레벨 " + newLevel + "로 레벨업했습니다. (+" + levelUpBonus + " 포인트)")
-                    .relatedId(character.getCharacterId())
-                    .build();
-            eventPublisher.publishEvent(event);
+                // 레벨업 알림 발송
+                NotificationEvent event = NotificationEvent.builder()
+                        .targetUser(user)
+                        .type(NotificationType.LEVEL_UP)
+                        .message("축하합니다! 레벨 " + newLevel + "로 레벨업했습니다. (+" + levelUpBonus + " 포인트)")
+                        .relatedId(character.getCharacterId())
+                        .build();
+                eventPublisher.publishEvent(event);
+
+                log.info("레벨업 완료 - userId: {}, characterId: {}, oldLevel: {}, newLevel: {}, bonus: {}",
+                        user.getId(), character.getCharacterId(), oldLevel, newLevel, levelUpBonus);
+            } else {
+                log.debug("레벨 갱신만 수행 - userId: {}, characterId: {}, oldLevel: {}, newLevel: {}, isCurrent: {}, grantReward: {}",
+                        user.getId(), character.getCharacterId(), oldLevel, newLevel, character.isCurrentCharacter(), grantReward);
+            }
         }
+    }
+
+    /**
+     * 하위 호환성을 위한 오버로딩 메서드 (기본값: grantReward=true)
+     */
+    @Transactional
+    public void updateCharacterLevel(Character character, User user) {
+        updateCharacterLevel(character, user, true);
     }
 
 }

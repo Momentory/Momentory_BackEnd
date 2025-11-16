@@ -230,6 +230,7 @@ public class AuthService {
             }
 
             user.updateName(dto.getName());
+            user.updateNickname(dto.getNickName());  // User 테이블의 nickname도 업데이트
             if (dto.getBio() != null) {
                 user.updateBio(dto.getBio());
             }

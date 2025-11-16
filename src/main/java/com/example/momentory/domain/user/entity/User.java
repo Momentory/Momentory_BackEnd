@@ -63,6 +63,10 @@ public class User extends BaseEntity {
         this.name = name;
     }
 
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
     public void updateBio(String bio) {
         // User 엔티티에 bio 필드가 없으므로 UserProfile을 통해 관리
         if (this.profile != null) {

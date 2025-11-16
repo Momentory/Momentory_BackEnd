@@ -1,6 +1,8 @@
 # Momentory Backend
 
 > 추억을 순간순간 기록하고 공유하는 위치 기반 사진 SNS 플랫폼
+<img width="512" height="512" alt="icon" src="https://github.com/user-attachments/assets/59a9d797-bd16-4da0-ad38-2ed44bc81500" />
+
 
 ## 프로젝트 소개
 
@@ -80,6 +82,9 @@ Momentory는 사진을 통해 추억을 기록하고, 지역 기반 스탬프를
 ### External APIs
 - **카카오 맵 API** - 위치 정보 변환
 - **Tour API** - 문화시설 정보
+  
+<img width="2872" height="1596" alt="image" src="https://github.com/user-attachments/assets/f2261569-178e-4ff0-959c-00a7e8b01f22" />
+
 
 ## 프로젝트 구조
 

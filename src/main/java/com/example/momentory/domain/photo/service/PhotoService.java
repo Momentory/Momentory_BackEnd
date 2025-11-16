@@ -40,6 +40,7 @@ public class PhotoService {
     private final CulturalSpotService culturalSpotService;
     private final KakaoMapService kakaoMapService;
     private final PointService pointService;
+    private final StampRepository stampRepository;
 
     // 포토 업로드
     @Transactional
@@ -68,11 +69,17 @@ public class PhotoService {
                 Map<String, String> spot = nearbySpotOpt.get();
                 double distance = Double.parseDouble(spot.get("distance"));
                 String type = spot.get("type");
+                String spotName = spot.get("name");
 
                 // 300m 이내일 때만 문화 스탬프 후보 인정
                 if (distance <= 300) {
-                    hasNearbyCulturalSpots = true;
-                    nearbyCulturalSpotName = spot.get("name");
+                    // 이미 받은 문화 스탬프인지 확인
+                    boolean alreadyHasStamp = stampRepository.existsByUserAndSpotName(user, spotName);
+
+                    if (!alreadyHasStamp) {
+                        hasNearbyCulturalSpots = true;
+                        nearbyCulturalSpotName = spotName;
+                    }
                 }
             }
         }

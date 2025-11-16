@@ -18,6 +18,9 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
     // 특정 사용자가 특정 게시글에 누른 좋아요를 찾습니다 (활성/비활성 무관)
     Optional<Like> findByUserAndPost(User user, Post post);
 
+    // 특정 사용자가 특정 게시글에 활성화된 좋아요를 눌렀는지 확인
+    boolean existsByUserAndPostAndIsActiveTrue(User user, Post post);
+
     // ===== 썸네일 전용 쿼리 (postId, imageUrl만 조회) =====
 
     // 특정 사용자가 좋아요한 게시글의 썸네일 정보만 조회

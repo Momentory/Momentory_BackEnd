@@ -82,13 +82,50 @@ public class CulturalSpotService {
                     .collect(Collectors.toList());
 
             Map<String, String> KNOWN_NAME_MAP = Map.ofEntries(
-                    Map.entry("수원 화성 [유네스코 세계유산]", "수원 화성"),
+                    // 수원화성
+                    Map.entry("수원 화성", "수원화성"),
+                    Map.entry("수원 화성 [유네스코 세계유산]", "수원화성"),
+                    Map.entry("화성", "수원화성"),
+                    // 부천만화박물관
+                    Map.entry("한국만화박물관", "부천만화박물관"),
+                    Map.entry("한국 만화박물관", "부천만화박물관"),
+                    Map.entry("만화박물관", "부천만화박물관"),
+                    Map.entry("부천 만화박물관", "부천만화박물관"),
+                    // 광명동굴
+                    Map.entry("광명 동굴", "광명동굴"),
+                    // 평택항
                     Map.entry("평택항 홍보관", "평택항"),
-                    Map.entry("누에섬 등대전망대", "안산 누에섬"),
-                    Map.entry("탄도항누에섬", "안산 누에섬"),
-                    Map.entry("킨텍스", "고양 킨텍스"),
-                    Map.entry("서울대공원", "과천 서울대공원"),
-                    Map.entry("왕방계곡", "동두천 계곡")
+                    // 동두천계곡
+                    Map.entry("왕방계곡", "동두천계곡"),
+                    Map.entry("동두천 계곡", "동두천계곡"),
+                    Map.entry("동두천시 계곡", "동두천계곡"),
+                    // 안산누에섬
+                    Map.entry("누에섬 등대전망대", "안산누에섬"),
+                    Map.entry("탄도항누에섬", "안산누에섬"),
+                    Map.entry("안산 누에섬", "안산누에섬"),
+                    Map.entry("누에섬", "안산누에섬"),
+                    // 고양킨텍스
+                    Map.entry("킨텍스", "고양킨텍스"),
+                    Map.entry("고양 킨텍스", "고양킨텍스"),
+                    Map.entry("KINTEX", "고양킨텍스"),
+                    // 과천서울대공원
+                    Map.entry("서울대공원", "과천서울대공원"),
+                    Map.entry("서울대 공원", "과천서울대공원"),
+                    // 구리시한강유채꽃
+                    Map.entry("구리시 한강유채꽃", "구리시한강유채꽃"),
+                    Map.entry("한강유채꽃", "구리시한강유채꽃"),
+                    Map.entry("구리 한강유채꽃", "구리시한강유채꽃"),
+                    // 남양주시물의정원
+                    Map.entry("남양주 물의정원", "남양주시물의정원"),
+                    Map.entry("물의정원", "남양주시물의정원"),
+                    Map.entry("남양주시 물의정원", "남양주시물의정원"),
+                    // 오산독산성
+                    Map.entry("오산 독산성", "오산독산성"),
+                    Map.entry("독산성", "오산독산성"),
+                    // 안양천
+                    Map.entry("안양천제방벚꽃길", "안양천"),
+                    Map.entry("안양천 제방", "안양천"),
+                    Map.entry("안양천제방", "안양천")
             );
 
             Optional<Map<String, String>> matchedStamp = nearbySpots.stream()
@@ -143,10 +180,14 @@ public class CulturalSpotService {
             }
 
             Map<String, double[]> STAMP_COORDS = Map.of(
-                    "수원 화성", new double[]{37.285, 127.019},
-                    "부천 만화박물관", new double[]{37.504, 126.776},
-                    "광명 동굴", new double[]{37.426, 126.864},
-                    "고양 킨텍스", new double[]{37.668, 126.745}
+                    "수원화성", new double[]{37.285, 127.019},
+                    "부천만화박물관", new double[]{37.504, 126.776},
+                    "광명동굴", new double[]{37.426, 126.864},
+                    "고양킨텍스", new double[]{37.668, 126.745},
+                    "남한산성", new double[]{37.479, 127.186},
+                    "과천서울대공원", new double[]{37.428, 127.018},
+                    "평택항", new double[]{36.967, 126.822},
+                    "안산누에섬", new double[]{37.191, 126.687}
                     // 필요한 곳 계속 추가
             );
 

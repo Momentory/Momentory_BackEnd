@@ -89,3 +89,6 @@ kakao:
 
 tourapi:
   key: ${TOUR_API_KEY}
+
+server:
+  forward-headers-strategy: native

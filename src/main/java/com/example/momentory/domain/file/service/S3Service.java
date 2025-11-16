@@ -17,20 +17,24 @@ import java.util.UUID;
 
 @Service
 public class S3Service {
+
     private final AmazonS3 amazonS3;
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
+
+    @Value("${cloud.aws.s3.cloudfront-url}")
+    private String cloudFrontUrl;  // <-- 신규 추가
 
     public S3Service(AmazonS3 amazonS3) {
         this.amazonS3 = amazonS3;
     }
 
     /**
-     * S3에 이미지 업로드
+     * 단일 이미지 업로드
      */
     public S3FileResponseDto uploadImage(MultipartFile image) throws IOException {
-        String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename(); // S3 Key
+        String fileName = UUID.randomUUID() + "_" + image.getOriginalFilename();
 
         ObjectMetadata metadata = new ObjectMetadata();
         metadata.setContentType(image.getContentType());
@@ -38,15 +42,14 @@ public class S3Service {
 
         amazonS3.putObject(new PutObjectRequest(bucket, fileName, image.getInputStream(), metadata));
 
-        String url = getPublicUrl(fileName);
+        // S3 REST URL 절대 쓰지 않고 CloudFront URL 사용
+        String url = buildCloudFrontUrl(fileName);
 
-        // 파일명과 URL 따로 반환
         return new S3FileResponseDto(fileName, url);
     }
 
-
     /**
-     * S3에 다중 이미지 업로드
+     * 다중 이미지 업로드
      */
     public List<S3FileResponseDto> uploadImages(List<MultipartFile> images) throws IOException {
         List<S3FileResponseDto> results = new ArrayList<>();
@@ -59,9 +62,8 @@ public class S3Service {
         return results;
     }
 
-
     /**
-     * S3에서 이미지 삭제
+     * 이미지 삭제
      */
     public void deleteFile(String fileName) {
         if (fileName == null || fileName.trim().isEmpty()) {
@@ -71,22 +73,22 @@ public class S3Service {
     }
 
     /**
-     * S3에서 다중 이미지 삭제
+     * 여러 파일 삭제
      */
     public int deleteFiles(List<String> fileNames) {
         if (fileNames == null || fileNames.isEmpty()) return 0;
 
-        // S3의 다중 삭제 API 사용
         DeleteObjectsRequest req = new DeleteObjectsRequest(bucket)
                 .withKeys(fileNames.stream().map(DeleteObjectsRequest.KeyVersion::new).toList());
+
         DeleteObjectsResult result = amazonS3.deleteObjects(req);
         return result.getDeletedObjects().size();
     }
 
-
-    public String getPublicUrl(String fileName) {
-        return String.format("https://%s.s3.%s.amazonaws.com/%s",
-                bucket, amazonS3.getRegionName(), fileName);
+    /**
+     * CloudFront URL 생성 (정답!)
+     */
+    private String buildCloudFrontUrl(String fileName) {
+        return String.format("%s/%s", cloudFrontUrl, fileName);
     }
 }
-

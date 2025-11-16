@@ -205,6 +205,50 @@ public class PostQueryService {
     }
 
     /**
+     * 통합 사용자 게시글 조회 (커서 페이지네이션)
+     * @param userId null이면 현재 사용자, 값이 있으면 해당 사용자의 게시글 조회
+     */
+    public PostResponseDto.PostThumbnailCursorResponse getUserPostsWithPagination(
+            Long userId, PostRequestDto.PostCursorRequest request) {
+
+        User user = userId == null ? userService.getCurrentUser()
+                : userRepository.findById(userId)
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+
+        int size = request.getSize() != null ? request.getSize() : 20;
+        Pageable pageable = PageRequest.of(0, size + 1);
+
+        List<PostResponseDto.PostThumbnailDto> posts;
+        if (request.getCursor() == null) {
+            // 첫 페이지
+            posts = postRepository.findThumbnailsByUserOrderByCreatedAtDesc(user, pageable);
+        } else {
+            // 커서 이후 데이터
+            posts = postRepository.findThumbnailsByUserWithCursor(user, request.getCursor(), pageable);
+        }
+
+        boolean hasNext = posts.size() > size;
+        if (hasNext) {
+            posts = posts.subList(0, size);
+        }
+
+        // 마지막 게시글의 createdAt을 커서로 사용하기 위해 Post 엔티티 조회 필요
+        LocalDateTime nextCursor = null;
+        if (hasNext && !posts.isEmpty()) {
+            Long lastPostId = posts.get(posts.size() - 1).getPostId();
+            Post lastPost = postRepository.findById(lastPostId)
+                    .orElseThrow(() -> new GeneralException(ErrorStatus.POST_NOT_FOUND));
+            nextCursor = lastPost.getCreatedAt();
+        }
+
+        return PostResponseDto.PostThumbnailCursorResponse.builder()
+                .posts(posts)
+                .nextCursor(nextCursor)
+                .hasNext(hasNext)
+                .build();
+    }
+
+    /**
      * 다중 태그로 게시글 필터링 조회 (커서 페이지네이션, OR 조건)
      */
     public PostResponseDto.PostCursorResponse getPostsByTags(PostRequestDto.PostTagFilterRequest request) {

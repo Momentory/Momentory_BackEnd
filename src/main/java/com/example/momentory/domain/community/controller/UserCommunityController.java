@@ -1,5 +1,6 @@
 package com.example.momentory.domain.community.controller;
 
+import com.example.momentory.domain.community.dto.PostRequestDto;
 import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.service.LikeService;
 import com.example.momentory.domain.community.service.PostQueryService;
@@ -9,10 +10,12 @@ import com.example.momentory.domain.user.service.UserService;
 import com.example.momentory.global.ApiResponse;
 import com.example.momentory.global.security.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -66,5 +69,85 @@ public class UserCommunityController {
     @Operation(summary = "내가 스크랩한 게시글 조회", description = "현재 인증된 사용자가 스크랩한 게시글 목록 조회 (postId, imageUrl만 반환).")
     public ApiResponse<List<PostResponseDto.PostThumbnailDto>> getUserScraps() {
         return ApiResponse.onSuccess(scrapService.getUserScrapList());
+    }
+
+    @GetMapping("/{userId}/likes")
+    @Operation(summary = "특정 사용자가 좋아요 누른 글 조회", description = "특정 사용자가 좋아요한 게시글 목록 조회 (postId, imageUrl만 반환).")
+    public ApiResponse<List<PostResponseDto.PostThumbnailDto>> getSpecificUserLikedPosts(@PathVariable Long userId) {
+        return ApiResponse.onSuccess(likeService.getSpecificUserLikedPosts(userId));
+    }
+
+    @GetMapping("/{userId}/scraps")
+    @Operation(summary = "특정 사용자가 스크랩한 글 조회", description = "특정 사용자가 스크랩한 게시글 목록 조회 (postId, imageUrl만 반환).")
+    public ApiResponse<List<PostResponseDto.PostThumbnailDto>> getSpecificUserScraps(@PathVariable Long userId) {
+        return ApiResponse.onSuccess(scrapService.getSpecificUserScrapList(userId));
+    }
+
+    // ===== 통합 API (페이지네이션 지원) =====
+
+    @GetMapping("/profile")
+    @Operation(
+            summary = "통합 프로필 조회",
+            description = "userId 파라미터가 없으면 현재 로그인 사용자의 프로필을 조회하고, userId가 있으면 해당 사용자의 프로필을 조회합니다. " +
+                    "응답에 isMe 필드가 포함되어 본인 프로필 여부를 확인할 수 있습니다."
+    )
+    public ApiResponse<UserResponseDto.CommunityProfileDto> getProfile(
+            @Parameter(description = "사용자 ID (선택사항, null이면 현재 사용자)")
+            @RequestParam(required = false) Long userId) {
+        return ApiResponse.onSuccess(userService.getCommunityProfile(userId));
+    }
+
+    @GetMapping("/posts")
+    @Operation(
+            summary = "통합 게시글 조회 (페이지네이션)",
+            description = "userId 파라미터가 없으면 현재 로그인 사용자의 게시글을 조회하고, userId가 있으면 해당 사용자의 게시글을 조회합니다. " +
+                    "커서 기반 페이지네이션을 지원합니다."
+    )
+    public ApiResponse<PostResponseDto.PostThumbnailCursorResponse> getPostsWithPagination(
+            @Parameter(description = "사용자 ID (선택사항, null이면 현재 사용자)")
+            @RequestParam(required = false) Long userId,
+            @Parameter(description = "커서 (마지막 게시글의 createdAt)")
+            @RequestParam(required = false) LocalDateTime cursor,
+            @Parameter(description = "조회할 게시글 수 (기본값: 20)")
+            @RequestParam(required = false) Integer size) {
+
+        PostRequestDto.PostCursorRequest request = new PostRequestDto.PostCursorRequest(cursor, size);
+        return ApiResponse.onSuccess(postQueryService.getUserPostsWithPagination(userId, request));
+    }
+
+    @GetMapping("/likes")
+    @Operation(
+            summary = "통합 좋아요 게시글 조회 (페이지네이션)",
+            description = "userId 파라미터가 없으면 현재 로그인 사용자가 좋아요한 게시글을 조회하고, userId가 있으면 해당 사용자가 좋아요한 게시글을 조회합니다. " +
+                    "커서 기반 페이지네이션을 지원합니다."
+    )
+    public ApiResponse<PostResponseDto.PostThumbnailCursorResponse> getLikesWithPagination(
+            @Parameter(description = "사용자 ID (선택사항, null이면 현재 사용자)")
+            @RequestParam(required = false) Long userId,
+            @Parameter(description = "커서 (마지막 게시글의 createdAt)")
+            @RequestParam(required = false) LocalDateTime cursor,
+            @Parameter(description = "조회할 게시글 수 (기본값: 20)")
+            @RequestParam(required = false) Integer size) {
+
+        PostRequestDto.PostCursorRequest request = new PostRequestDto.PostCursorRequest(cursor, size);
+        return ApiResponse.onSuccess(likeService.getUserLikedPostsWithPagination(userId, request));
+    }
+
+    @GetMapping("/scraps")
+    @Operation(
+            summary = "통합 스크랩 게시글 조회 (페이지네이션)",
+            description = "userId 파라미터가 없으면 현재 로그인 사용자가 스크랩한 게시글을 조회하고, userId가 있으면 해당 사용자가 스크랩한 게시글을 조회합니다. " +
+                    "커서 기반 페이지네이션을 지원합니다."
+    )
+    public ApiResponse<PostResponseDto.PostThumbnailCursorResponse> getScrapsWithPagination(
+            @Parameter(description = "사용자 ID (선택사항, null이면 현재 사용자)")
+            @RequestParam(required = false) Long userId,
+            @Parameter(description = "커서 (마지막 게시글의 createdAt)")
+            @RequestParam(required = false) LocalDateTime cursor,
+            @Parameter(description = "조회할 게시글 수 (기본값: 20)")
+            @RequestParam(required = false) Integer size) {
+
+        PostRequestDto.PostCursorRequest request = new PostRequestDto.PostCursorRequest(cursor, size);
+        return ApiResponse.onSuccess(scrapService.getUserScrapsWithPagination(userId, request));
     }
 }

@@ -4,11 +4,13 @@ import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.entity.Post;
 import com.example.momentory.domain.community.entity.Scrap;
 import com.example.momentory.domain.user.entity.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +30,26 @@ public interface ScrapRepository extends JpaRepository<Scrap, Long> {
             "FROM Scrap s JOIN s.post p WHERE s.user = :user")
     List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUser(@Param("user") User user);
 
+    // ===== 커서 기반 페이지네이션 =====
+
+    // 스크랩한 게시글 커서 페이지네이션 (최신순)
+    @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
+            "FROM Scrap s JOIN s.post p WHERE s.user = :user AND p.createdAt < :cursor " +
+            "ORDER BY p.createdAt DESC")
+    List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUserWithCursor(
+            @Param("user") User user,
+            @Param("cursor") LocalDateTime cursor,
+            Pageable pageable);
+
+    // 스크랩한 게시글 첫 페이지
+    @Query("SELECT new com.example.momentory.domain.community.dto.PostResponseDto$PostThumbnailDto(p.postId, p.imageUrl) " +
+            "FROM Scrap s JOIN s.post p WHERE s.user = :user " +
+            "ORDER BY p.createdAt DESC")
+    List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUserOrderByCreatedAtDesc(
+            @Param("user") User user,
+            Pageable pageable);
+
     // 특정 게시글의 모든 스크랩 삭제
     void deleteAllByPost(Post post);
+
 }

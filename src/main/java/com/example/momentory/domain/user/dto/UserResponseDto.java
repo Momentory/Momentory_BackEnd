@@ -73,6 +73,7 @@ public class UserResponseDto {
     @NoArgsConstructor
     @Builder
     public static class CommunityProfileDto {
+        private Long userId; // 사용자 ID
         private String nickname;
         private String imageUrl; // 프로필사진 URL만
         private String backgroundImageUrl; // 배경사진 URL만
@@ -80,6 +81,7 @@ public class UserResponseDto {
         private String externalLink;
         private Long followerCount;
         private Long followingCount;
+        private Boolean isMe; // 내 프로필 여부
         private Boolean isFollowing; // 다른 사용자 조회 시에만 사용 (내 프로필 조회 시 null)
     }
 

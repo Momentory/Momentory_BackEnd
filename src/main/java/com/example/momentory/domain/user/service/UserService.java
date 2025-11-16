@@ -40,6 +40,11 @@ public class UserService {
                 .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
     }
 
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new GeneralException(ErrorStatus.MEMBER_NOT_FOUND));
+    }
+
     // 내 정보 조회
     public UserResponseDto.MyInfoDto getMyInfo() {
         User user = getCurrentUser();
@@ -94,6 +99,7 @@ public class UserService {
         Long followingCount = followRepository.countByFollower(user);
 
         return UserResponseDto.CommunityProfileDto.builder()
+                .userId(user.getId())
                 .nickname(user.getNickname())
                 .imageUrl(userProfile != null ? userProfile.getImageUrl() : null)
                 .backgroundImageUrl(userProfile != null ? userProfile.getBackgroundImageUrl() : null)
@@ -101,6 +107,7 @@ public class UserService {
                 .externalLink(userProfile != null ? userProfile.getExternalLink() : null)
                 .followerCount(followerCount)
                 .followingCount(followingCount)
+                .isMe(true)
                 .isFollowing(null) // 내 프로필이므로 null
                 .build();
     }
@@ -117,10 +124,14 @@ public class UserService {
         Long followerCount = followRepository.countByFollowing(targetUser);
         Long followingCount = followRepository.countByFollower(targetUser);
 
-        // 팔로우 여부 확인
-        boolean isFollowing = followRepository.existsByFollowerAndFollowing(currentUser, targetUser);
+        // 본인 프로필인지 확인
+        boolean isMe = currentUser.getId().equals(targetUser.getId());
+
+        // 팔로우 여부 확인 (본인이 아닐 때만)
+        Boolean isFollowing = isMe ? null : followRepository.existsByFollowerAndFollowing(currentUser, targetUser);
 
         return UserResponseDto.CommunityProfileDto.builder()
+                .userId(targetUser.getId())
                 .nickname(targetUser.getNickname())
                 .imageUrl(userProfile != null ? userProfile.getImageUrl() : null)
                 .backgroundImageUrl(userProfile != null ? userProfile.getBackgroundImageUrl() : null)
@@ -128,8 +139,21 @@ public class UserService {
                 .externalLink(userProfile != null ? userProfile.getExternalLink() : null)
                 .followerCount(followerCount)
                 .followingCount(followingCount)
+                .isMe(isMe)
                 .isFollowing(isFollowing)
                 .build();
+    }
+
+    /**
+     * 통합 커뮤니티 프로필 조회
+     * @param userId null이면 현재 사용자, 값이 있으면 해당 사용자 조회
+     */
+    public UserResponseDto.CommunityProfileDto getCommunityProfile(Long userId) {
+        if (userId == null) {
+            return getMyCommunityProfile();
+        } else {
+            return getUserCommunityProfile(userId);
+        }
     }
 
     // 프로필 수정

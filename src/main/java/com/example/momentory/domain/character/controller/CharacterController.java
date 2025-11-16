@@ -42,8 +42,14 @@ public class CharacterController {
     }
 
     @GetMapping
-    @Operation(summary = "전체 캐릭터 목록 조회", description = "사용자가 보유한 모든 캐릭터 목록을 조회합니다.")
-    public ApiResponse<List<CharacterDto.ListResponse>> getAllCharacters() {
+    @Operation(summary = "전체 캐릭터 타입 조회", description = "모든 가능한 캐릭터 타입 목록을 조회합니다.")
+    public ApiResponse<List<CharacterDto.CharacterTypeResponse>> getAllCharacterTypes() {
+        return ApiResponse.onSuccess(characterService.getAllCharacterTypes());
+    }
+
+    @GetMapping("/me")
+    @Operation(summary = "사용자 보유 캐릭터 조회", description = "사용자가 보유한 모든 캐릭터 목록을 조회합니다.")
+    public ApiResponse<List<CharacterDto.ListResponse>> getMyCharacters() {
         return ApiResponse.onSuccess(characterService.getAllCharacters());
     }
 

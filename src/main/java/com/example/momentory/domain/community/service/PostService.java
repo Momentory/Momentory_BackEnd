@@ -4,7 +4,9 @@ import com.example.momentory.domain.community.converter.CommunityConverter;
 import com.example.momentory.domain.community.dto.PostRequestDto;
 import com.example.momentory.domain.community.dto.PostResponseDto;
 import com.example.momentory.domain.community.entity.Post;
+import com.example.momentory.domain.community.repository.LikeRepository;
 import com.example.momentory.domain.community.repository.PostRepository;
+import com.example.momentory.domain.community.repository.ScrapRepository;
 import com.example.momentory.domain.file.service.S3Service;
 import com.example.momentory.domain.map.entity.Region;
 import com.example.momentory.domain.map.repository.RegionRepository;
@@ -34,6 +36,8 @@ public class PostService {
     private final PostTagRepository postTagRepository;
     private final CommunityConverter communityConverter;
     private final S3Service s3Service;
+    private final LikeRepository likeRepository;
+    private final ScrapRepository scrapRepository;
 
     /**
      * 게시글 생성
@@ -156,6 +160,16 @@ public class PostService {
             throw new GeneralException(ErrorStatus._FORBIDDEN);
         }
 
+        // 외래키 제약 조건을 위해 연관된 데이터를 먼저 삭제
+        // 1. 좋아요 삭제
+        likeRepository.deleteAllByPost(post);
+
+        // 2. 스크랩 삭제
+        scrapRepository.deleteAllByPost(post);
+
+        // 3. 태그 삭제
+        postTagRepository.deleteAllByPost(post);
+
         // S3에서 이미지 삭제
         if (post.getImageName() != null && !post.getImageName().isEmpty()) {
             try {
@@ -167,6 +181,7 @@ public class PostService {
             }
         }
 
+        // 4. 게시글 삭제
         postRepository.delete(post);
     }
 }

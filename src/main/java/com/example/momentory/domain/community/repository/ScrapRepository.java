@@ -48,4 +48,8 @@ public interface ScrapRepository extends JpaRepository<Scrap, Long> {
     List<PostResponseDto.PostThumbnailDto> findPostThumbnailsByUserOrderByCreatedAtDesc(
             @Param("user") User user,
             Pageable pageable);
+
+    // 특정 게시글의 모든 스크랩 삭제
+    void deleteAllByPost(Post post);
+
 }

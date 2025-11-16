@@ -30,6 +30,7 @@ public class EventService {
 
     @Transactional
     public EventDto.Response createEvent(EventDto.CreateRequest request) {
+        // 1. 이벤트 생성
         Event event = Event.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -40,6 +41,26 @@ public class EventService {
                 .build();
 
         Event savedEvent = eventRepository.save(event);
+
+        // 2. 이벤트와 함께 생성할 아이템이 있다면 일괄 생성
+        if (request.getItems() != null && !request.getItems().isEmpty()) {
+            List<CharacterItem> items = request.getItems().stream()
+                    .map(itemRequest -> CharacterItem.builder()
+                            .name(itemRequest.getName())
+                            .category(itemRequest.getCategory())
+                            .imageName(itemRequest.getImageName())
+                            .imageUrl(itemRequest.getImageUrl())
+                            .price(itemRequest.getPrice())
+                            .unlockLevel(itemRequest.getUnlockLevel())
+                            .isLimited(itemRequest.isLimited())
+                            .event(savedEvent) // 생성된 이벤트와 연결
+                            .build())
+                    .collect(Collectors.toList());
+
+            characterItemRepository.saveAll(items);
+            log.info("이벤트 생성과 함께 {} 개의 아이템이 등록되었습니다.", items.size());
+        }
+
         return characterConverter.toEventResponse(savedEvent);
     }
 
@@ -72,13 +93,6 @@ public class EventService {
                 .collect(Collectors.toList());
     }
 
-    public List<EventDto.ListResponse> getEventsByType(EventType eventType) {
-        List<Event> events = eventRepository.findByEventType(eventType);
-        return events.stream()
-                .map(characterConverter::toEventListResponse)
-                .collect(Collectors.toList());
-    }
-
     @Transactional
     public EventDto.Response updateEvent(Long eventId, EventDto.UpdateRequest request) {
         Event event = eventRepository.findById(eventId)
@@ -101,8 +115,10 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new GeneralException(ErrorStatus.EVENT_NOT_FOUND));
 
-        // 이벤트를 삭제하면 연결된 아이템들의 event 참조가 null이 됨
-        // 필요하다면 여기서 연결된 아이템들을 처리할 수 있음
+        // 외래키 제약 조건을 위해 연관된 아이템을 먼저 삭제
+        characterItemRepository.deleteAllByEvent(event);
+
+        // 이벤트 삭제
         eventRepository.delete(event);
     }
 
@@ -133,15 +149,4 @@ public class EventService {
                 .build();
     }
 
-    // 이벤트 기간 검증 (다른 서비스에서 사용)
-    public void validateEventPeriod(Event event) {
-        if (!event.isActive()) {
-            throw new GeneralException(ErrorStatus.EVENT_NOT_ACTIVE);
-        }
-
-        LocalDateTime now = LocalDateTime.now();
-        if (!event.isEventPeriod(now)) {
-            throw new GeneralException(ErrorStatus.EVENT_NOT_IN_PERIOD);
-        }
-    }
 }

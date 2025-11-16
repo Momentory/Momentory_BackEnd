@@ -1,6 +1,7 @@
 package com.example.momentory.domain.character.dto;
 
 import com.example.momentory.domain.character.entity.status.EventType;
+import com.example.momentory.domain.character.entity.status.ItemCategory;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,6 +23,21 @@ public class EventDto {
         private LocalDateTime endDate;
         private EventType eventType;
         private boolean isActive;
+        private List<EventItemRequest> items; // 이벤트와 함께 생성할 아이템 목록 (optional)
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class EventItemRequest {
+        private String name;
+        private ItemCategory category;
+        private String imageName;
+        private String imageUrl;
+        private int price;
+        private int unlockLevel;
+        private boolean isLimited; // 한정판 여부 (이벤트에 연결된 아이템은 기본적으로 한정판)
     }
 
     @Getter

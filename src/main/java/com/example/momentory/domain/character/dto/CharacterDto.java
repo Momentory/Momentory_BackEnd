@@ -84,5 +84,14 @@ public class CharacterDto {
         private EquippedItems equippedItems;
     }
 
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CharacterTypeResponse {
+        private CharacterType characterType;
+        private String displayName;
+    }
+
 }
 

@@ -166,7 +166,7 @@ public class UserService {
 
         // 프로필 업데이트 (null이 아닌 값들만 업데이트)
         userProfile.updateProfile(
-                request.getNickName() != null ? request.getNickName() : userProfile.getNickname(),
+                request.getNickname() != null ? request.getNickname() : userProfile.getNickname(),
                 userProfile.getBirth(),
                 userProfile.getGender(),
                 request.getImageName() != null ? request.getImageName() : userProfile.getImageName(),

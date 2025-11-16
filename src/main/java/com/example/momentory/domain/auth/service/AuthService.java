@@ -263,6 +263,7 @@ public class AuthService {
                         .birth(dto.getBirthDate())
                         .imageName(dto.getImageName())
                         .imageUrl(dto.getImageUrl())
+                        .bio(dto.getBio())
                         .externalLink(dto.getExternalLink())
                         .point(signupPoints)
                         .build();

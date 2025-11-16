@@ -15,7 +15,7 @@ import java.util.List;
 @RequestMapping("/api/admin/items")
 @RequiredArgsConstructor
 @Slf4j
-@Tag(name = "Admin Item", description = "관리자 아이템 관리 API")
+@Tag(name = "[백엔드 전용] Admin Item", description = "관리자 아이템 관리 API - 프론트엔드에서 연결할 필요 없으며, 개발자가 캐릭터 아이템 생성 및 관리 목적으로 사용하기 위한 API입니다.")
 public class AdminItemController {
 
     private final AdminItemService adminItemService;

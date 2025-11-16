@@ -29,7 +29,7 @@ public class PointController {
     }
 
     @PostMapping("/add")
-    @Operation(summary = "포인트 추가", description = "사용자의 포인트를 추가합니다.")
+    @Operation(summary = "[백엔드 전용] 포인트 추가", description = "사용자의 포인트를 추가합니다. 이 API는 프론트엔드에서 연결할 필요 없으며, 백엔드 개발자가 테스트 및 디버깅 목적으로 사용하기 위한 API입니다.")
     public ApiResponse<String> addPoint(@RequestBody PointRequest.Add request) {
         if(request.getUserId()!=null){
             User user = userRepository.findById(request.getUserId()).get();
@@ -40,7 +40,7 @@ public class PointController {
     }
 
     @PostMapping("/use")
-    @Operation(summary = "포인트 사용", description = "사용자의 포인트를 감소합니다.")
+    @Operation(summary = "[백엔드 전용] 포인트 사용", description = "사용자의 포인트를 감소합니다. 이 API는 프론트엔드에서 연결할 필요 없으며, 백엔드 개발자가 테스트 및 디버깅 목적으로 사용하기 위한 API입니다.")
     public ApiResponse<String> usePoint(@RequestBody PointRequest.Use request) {
         if(request.getUserId()!=null){
             User user = userRepository.findById(request.getUserId()).get();

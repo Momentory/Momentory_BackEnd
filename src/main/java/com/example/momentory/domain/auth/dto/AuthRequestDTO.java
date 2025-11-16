@@ -2,6 +2,7 @@ package com.example.momentory.domain.auth.dto;
 
 import com.example.momentory.domain.character.entity.status.CharacterType;
 import com.example.momentory.domain.user.entity.Gender;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -61,7 +62,10 @@ public class AuthRequestDTO {
         private String name;
         private Gender gender;
         private LocalDate birthDate;
+
+        @JsonProperty("nickname")
         private String nickName;
+
         private CharacterType characterType;
 
         // 선택 필드

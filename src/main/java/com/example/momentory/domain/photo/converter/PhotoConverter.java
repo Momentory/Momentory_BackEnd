@@ -22,6 +22,12 @@ public class PhotoConverter {
     }
 
     public static PhotoReseponseDto.PhotoResponse toPhotoResponse(Photo photo) {
+        String userNickname = photo.getUser() != null ? photo.getUser().getNickname() : null;
+        String userProfileImageUrl = null;
+        if (photo.getUser() != null && photo.getUser().getProfile() != null) {
+            userProfileImageUrl = photo.getUser().getProfile().getImageUrl();
+        }
+
         return PhotoReseponseDto.PhotoResponse.builder()
                 .photoId(photo.getPhotoId())
                 .imageName(photo.getImageName())
@@ -32,6 +38,8 @@ public class PhotoConverter {
                 .memo(photo.getMemo())
                 .visibility(photo.getVisibility())
                 .createdAt(photo.getCreatedAt())
+                .userNickname(userNickname)
+                .userProfileImageUrl(userProfileImageUrl)
                 .build();
     }
 }
